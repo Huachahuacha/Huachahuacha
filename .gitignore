@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+.consultant-db.env
+.consultant-admin.txt
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
