@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weekly-report-automation"
+version = "0.1.0"
+description = "Feishu + OpenAI weekly report automation."
+requires-python = ">=3.11"
+dependencies = [
+  "Django>=5.0,<6.0",
+  "openpyxl>=3.1.0",
+  "psycopg[binary]>=3.2.0",
+  "requests>=2.32.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "responses>=0.25.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
