@@ -34,9 +34,9 @@ jobs:
     env:
       TZ: Asia/Shanghai
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'scan' }}
-      BID_ALERT_KEYWORDS: "ä¸å®¶å¨è¯¢æå¡,ä¸å®¶å¨è¯¢æå¡éè´­,ä¸å®¶å¨è¯¢æå¡ä¾åºåå¥å´éè´­,ä¸å®¶å¨è¯¢æå¡ææ ,ä¸å®¶å¨è¯¢æå¡éè,è¡ä¸ä¸å®¶å¨è¯¢æå¡éè´­,å¤é¨ä¸å®¶å¨è¯¢æå¡,ä¸å®¶è®¿è°å¨è¯¢æå¡,ä¸å®¶æå¡éå,ä¸å®¶æå¡ä¾åºåå¥å´,ä¸å®¶å¨è¯¢åº,å¨è¯¢ä¸­ä»æºæ"
+      BID_ALERT_KEYWORDS: "专家咨询服务,专家咨询服务采购,专家咨询服务供应商入围采购,专家咨询服务招标,专家咨询服务选聘,行业专家咨询服务采购,外部专家咨询服务,专家访谈咨询服务,专家服务选型,专家服务供应商入围,专家咨询库,咨询中介机构"
       BID_ALERT_SITE_FILTERS: "ctbpsp.com,cebpubservice.com,sdicc.com.cn,gy.chinamae.com,ctsec.com,stbid.stdzzb.com,bbda.com,epp.sinomach.com.cn,jzcg.chinagoldgroup.com,supplier.gtht.com,ec.chng.com.cn,bidding.ec.chng.com.cn,yuxinec.com,sntba.com,jszbtb.com"
-      BID_ALERT_EXTRA_QUERIES: "ä¸å®¶å¨è¯¢æå¡éè´­ å¥å´;ä¸å®¶å¨è¯¢æå¡éè´­ åéäººå¬ç¤º;ä¸å®¶å¨è¯¢æå¡éè´­ ç»æå¬å;ä¸å®¶å¨è¯¢æå¡éè´­ æ´æ­£å¬å;ä¸å®¶å¨è¯¢æå¡æ¡æ¶åè®®;ä¸å®¶å¨è¯¢æå¡ä¾åºå;ä¸å®¶å¨è¯¢æå¡ä¾åºåå¥å´éè´­;ä¸å®¶å¨è¯¢æå¡ææ ;ä¸å®¶å¨è¯¢æå¡éè;å¤é¨ä¸å®¶å¨è¯¢æå¡;å¤é¨ä¸å®¶å¨è¯¢æå¡éè´­;å¤é¨ä¸å®¶å¨è¯¢æå¡éè;è¡ä¸ä¸å®¶å¨è¯¢æå¡éè´­;ä¸å®¶è®¿è°å¨è¯¢æå¡;ä¸å®¶æå¡éå;ä¸å®¶æå¡ä¾åºåå¥å´;è¯å¸ ä¸å®¶å¨è¯¢æå¡éè´­;è¯å¸ ä¸å®¶å¨è¯¢æå¡ä¾åºå;è¯å¸ å¤é¨ä¸å®¶å¨è¯¢æå¡;è¡ææèµ ä¸å®¶å¨è¯¢æå¡éè´­;ç§ååºé ä¸å®¶å¨è¯¢æå¡;ç§ååºé ä¸å®¶è®¿è°å¨è¯¢æå¡;åºéç®¡ç ä¸å®¶å¨è¯¢æå¡"
+      BID_ALERT_EXTRA_QUERIES: "专家咨询服务采购 入围;专家咨询服务采购 候选人公示;专家咨询服务采购 结果公告;专家咨询服务采购 更正公告;专家咨询服务框架协议;专家咨询服务供应商;专家咨询服务供应商入围采购;专家咨询服务招标;专家咨询服务选聘;外部专家咨询服务;外部专家咨询服务采购;外部专家咨询服务选聘;行业专家咨询服务采购;专家访谈咨询服务;专家服务选型;专家服务供应商入围;证券 专家咨询服务采购;证券 专家咨询服务供应商;证券 外部专家咨询服务;股权投资 专家咨询服务采购;私募基金 专家咨询服务;私募基金 专家访谈咨询服务;基金管理 专家咨询服务"
       BID_ALERT_SOURCE_URLS: "https://www.sdicc.com.cn/,https://gy.chinamae.com/purchases-latest,https://gy.chinamae.com/purchases/type/1,https://gy.chinamae.com/purchases/type/3,https://www.ctsec.com/bidding,https://www.ctsec.com/bidding/list/1,https://www.ctsec.com/bidding/list/2,https://www.ctsec.com/bidding/list/3"
       BID_ALERT_QUERY_SUFFIX: "after:2025-01-01"
       BID_ALERT_BROAD_SEARCH: "true"
@@ -48,7 +48,7 @@ jobs:
       BID_ALERT_MIN_RELEVANCE_SCORE: "5"
       BID_ALERT_MAX_EMAIL_ITEMS: "50"
       BID_ALERT_REQUEST_TIMEOUT_SECONDS: "20"
-      BID_ALERT_SUBJECT_PREFIX: "ææ å¬åæé"
+      BID_ALERT_SUBJECT_PREFIX: "招标公告提醒"
       BID_ALERT_SMTP_HOST: "smtp.gmail.com"
       BID_ALERT_SMTP_PORT: "465"
       BID_ALERT_SMTP_USE_SSL: "true"
