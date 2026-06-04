@@ -2,8 +2,8 @@ name: Bid announcement alerts
 
 on:
   schedule:
-    # 09:00 Asia/Shanghai = 01:00 UTC.
-    - cron: "0 1 * * *"
+    # 09:17 Asia/Shanghai = 01:17 UTC. Avoid the busy top-of-hour scheduler window.
+    - cron: "17 1 * * *"
   workflow_dispatch:
     inputs:
       mode:
