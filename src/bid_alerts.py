@@ -1351,17 +1351,31 @@ def render_email_body(
     return "\n".join(lines).strip() + "\n"
 
 
+def render_failure_email_body(error: Exception) -> str:
+    lines = [
+        "本次招标公告云端扫描已经触发，但扫描过程失败，因此没有完成正常结果筛选。",
+        "",
+        "这封邮件表示自动任务本身仍在运行并且发信链路可用；它不是“未发现新目标”的摘要。请到 GitHub Actions 对应运行里查看 Run bid alert 日志。",
+        "",
+        "## 故障摘要",
+        "",
+        f"- 错误类型：{type(error).__name__}",
+        f"- 错误信息：{error}",
+        "",
+        "常见原因包括公开搜索 RSS 临时不可用、源站网络超时、GitHub Actions 出口网络被目标站限制等。下一次定时任务会继续尝试。",
+    ]
+    return "\n".join(lines).strip() + "\n"
+
+
 def _emit_progress(progress: Callable[[str], None] | None, message: str) -> None:
     if progress:
         progress(message)
 
 
-def send_email(
+def _send_message(
     settings: BidAlertSettings,
-    items: list[AlertItem],
+    message: EmailMessage,
     *,
-    total_found: int | None = None,
-    eligible_count: int | None = None,
     progress: Callable[[str], None] | None = None,
     smtp_attempts: int = 3,
     curl_retries: int = 2,
@@ -1372,12 +1386,6 @@ def send_email(
     assert settings.smtp_host
     assert settings.smtp_username
     assert settings.smtp_password
-
-    message = EmailMessage()
-    message["From"] = settings.sender_email
-    message["To"] = settings.recipient_email
-    message["Subject"] = f"{settings.subject_prefix}：{len(items)} 条专家相关新公告"
-    message.set_content(render_email_body(items, total_found=total_found, eligible_count=eligible_count))
 
     smtp_class = smtplib.SMTP_SSL if settings.smtp_use_ssl else smtplib.SMTP
     last_error: Exception | None = None
@@ -1404,6 +1412,52 @@ def send_email(
     except BidAlertFetchError as curl_error:
         _emit_progress(progress, "curl 发送失败。")
         raise BidAlertFetchError("Failed to send email via SMTP") from curl_error or last_error
+
+
+def send_email(
+    settings: BidAlertSettings,
+    items: list[AlertItem],
+    *,
+    total_found: int | None = None,
+    eligible_count: int | None = None,
+    progress: Callable[[str], None] | None = None,
+    smtp_attempts: int = 3,
+    curl_retries: int = 2,
+) -> None:
+    _require_email_settings(settings)
+    assert settings.recipient_email
+    assert settings.sender_email
+
+    message = EmailMessage()
+    message["From"] = settings.sender_email
+    message["To"] = settings.recipient_email
+    message["Subject"] = f"{settings.subject_prefix}：{len(items)} 条专家相关新公告"
+    message.set_content(render_email_body(items, total_found=total_found, eligible_count=eligible_count))
+    _send_message(
+        settings,
+        message,
+        progress=progress,
+        smtp_attempts=smtp_attempts,
+        curl_retries=curl_retries,
+    )
+
+
+def send_failure_email(
+    settings: BidAlertSettings,
+    error: Exception,
+    *,
+    progress: Callable[[str], None] | None = None,
+) -> None:
+    _require_email_settings(settings)
+    assert settings.recipient_email
+    assert settings.sender_email
+
+    message = EmailMessage()
+    message["From"] = settings.sender_email
+    message["To"] = settings.recipient_email
+    message["Subject"] = f"{settings.subject_prefix}：扫描失败"
+    message.set_content(render_failure_email_body(error))
+    _send_message(settings, message, progress=progress)
 
 
 def send_email_with_curl(settings: BidAlertSettings, message: EmailMessage, *, retries: int = 2) -> None:
@@ -1509,6 +1563,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    settings: BidAlertSettings | None = None
+    progress = None
     try:
         settings = load_settings()
         if args.state_file:
@@ -1517,12 +1573,17 @@ def main(argv: list[str] | None = None) -> int:
             send_test_email(settings, progress=lambda message: print(message, file=sys.stderr, flush=True))
             print("Sent bid alert test email.")
             return 0
-        progress = None
         if args.dry_run or args.verbose:
             progress = lambda message: print(message, file=sys.stderr, flush=True)
         total, new_count = run_alerts(settings, dry_run=args.dry_run, prime=args.prime, progress=progress)
     except (BidAlertConfigError, BidAlertFetchError) as exc:
         print(f"Bid alert error: {exc}", file=sys.stderr)
+        if settings is not None and not args.dry_run and not args.prime and not args.test_email:
+            try:
+                send_failure_email(settings, exc, progress=progress)
+                print("Sent bid alert failure email.", file=sys.stderr)
+            except (BidAlertConfigError, BidAlertFetchError) as notify_exc:
+                print(f"Bid alert failure email error: {notify_exc}", file=sys.stderr)
         return 1
 
     if args.prime:
