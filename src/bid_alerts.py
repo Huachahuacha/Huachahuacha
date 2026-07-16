@@ -34,6 +34,8 @@ import requests
 DEFAULT_KEYWORDS = (
     "专家网络",
     "专家咨询",
+    "专家咨询采购",
+    "专家咨询采购项目",
     "专家咨询服务",
     "专家咨询服务采购",
     "专家咨询服务采购项目",
@@ -115,6 +117,8 @@ DEFAULT_CTBPSP_MIRROR_SITE_FILTERS = (
 )
 
 DEFAULT_EXTRA_QUERIES = (
+    '"专家咨询采购项目"',
+    '"专家咨询采购" "招标公告"',
     '"专家咨询服务采购" "入围"',
     '"专家咨询服务采购" "候选人公示"',
     '"专家咨询服务采购" "结果公告"',
@@ -158,6 +162,8 @@ DEFAULT_MIN_RELEVANCE_SCORE = 5
 DEFAULT_MAX_EMAIL_ITEMS = 50
 USER_AGENT = "Mozilla/5.0 (compatible; bid-alerts/0.1; +local-monitor)"
 STRONG_TERMS = (
+    "专家咨询采购",
+    "专家咨询采购项目",
     "行业专家咨询服务",
     "行业专家咨询服务采购",
     "专家咨询服务采购",
