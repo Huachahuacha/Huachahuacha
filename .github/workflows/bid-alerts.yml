@@ -34,9 +34,9 @@ jobs:
     env:
       TZ: Asia/Shanghai
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'scan' }}
-      BID_ALERT_KEYWORDS: "专家咨询服务,专家咨询服务采购,专家咨询服务供应商入围采购,专家咨询服务招标,专家咨询服务选聘,行业专家咨询服务采购,外部专家咨询服务,专家访谈咨询服务,专家服务选型,专家服务供应商入围,专家咨询库,咨询中介机构"
+      BID_ALERT_KEYWORDS: "专家咨询采购,专家咨询采购项目,专家咨询服务,专家咨询服务采购,专家咨询服务供应商入围采购,专家咨询服务招标,专家咨询服务选聘,行业专家咨询服务采购,外部专家咨询服务,专家访谈咨询服务,专家服务选型,专家服务供应商入围,专家咨询库,咨询中介机构"
       BID_ALERT_SITE_FILTERS: "ctbpsp.com,cebpubservice.com,sdicc.com.cn,gy.chinamae.com,ctsec.com,stbid.stdzzb.com,bbda.com,epp.sinomach.com.cn,jzcg.chinagoldgroup.com,supplier.gtht.com,ec.chng.com.cn,bidding.ec.chng.com.cn,yuxinec.com,sntba.com,jszbtb.com"
-      BID_ALERT_EXTRA_QUERIES: "专家咨询服务采购 入围;专家咨询服务采购 候选人公示;专家咨询服务采购 结果公告;专家咨询服务采购 更正公告;专家咨询服务框架协议;专家咨询服务供应商;专家咨询服务供应商入围采购;专家咨询服务招标;专家咨询服务选聘;外部专家咨询服务;外部专家咨询服务采购;外部专家咨询服务选聘;行业专家咨询服务采购;专家访谈咨询服务;专家服务选型;专家服务供应商入围;证券 专家咨询服务采购;证券 专家咨询服务供应商;证券 外部专家咨询服务;股权投资 专家咨询服务采购;私募基金 专家咨询服务;私募基金 专家访谈咨询服务;基金管理 专家咨询服务"
+      BID_ALERT_EXTRA_QUERIES: "专家咨询采购项目;专家咨询采购 招标公告;专家咨询服务采购 入围;专家咨询服务采购 候选人公示;专家咨询服务采购 结果公告;专家咨询服务采购 更正公告;专家咨询服务框架协议;专家咨询服务供应商;专家咨询服务供应商入围采购;专家咨询服务招标;专家咨询服务选聘;外部专家咨询服务;外部专家咨询服务采购;外部专家咨询服务选聘;行业专家咨询服务采购;专家访谈咨询服务;专家服务选型;专家服务供应商入围;证券 专家咨询服务采购;证券 专家咨询服务供应商;证券 外部专家咨询服务;股权投资 专家咨询服务采购;私募基金 专家咨询服务;私募基金 专家访谈咨询服务;基金管理 专家咨询服务"
       BID_ALERT_SOURCE_URLS: "https://www.sdicc.com.cn/,https://gy.chinamae.com/purchases-latest,https://gy.chinamae.com/purchases/type/1,https://gy.chinamae.com/purchases/type/3,https://www.ctsec.com/bidding,https://www.ctsec.com/bidding/list/1,https://www.ctsec.com/bidding/list/2,https://www.ctsec.com/bidding/list/3"
       BID_ALERT_QUERY_SUFFIX: "after:2025-01-01"
       BID_ALERT_BROAD_SEARCH: "true"
