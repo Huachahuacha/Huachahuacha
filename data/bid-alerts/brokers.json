@@ -1,0 +1,1735 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-09",
+  "retrieved_at": "2026-10-29T14:29:30+08:00",
+  "source_url": "https://www.csrc.gov.cn/csrc/c101860/c1029659/1029659/files/%E8%AF%81%E5%88%B8%E5%85%AC%E5%8F%B8%E5%90%8D%E5%BD%95%EF%BC%882026%E5%B9%B49%E6%9C%88%EF%BC%89.xls",
+  "provenance": {
+    "publisher": "中国证券监督管理委员会",
+    "title": "证券公司名录（2026年9月）",
+    "page_url": "https://www.csrc.gov.cn/csrc/c101860/c1029659/content.shtml",
+    "source_sha256": "5f3de07aee7cc2a7c8470cd24979caaf5247a3a035e5f1f5c23e0f2962cafacb",
+    "source_bytes": 44544,
+    "source_sheet": "Sheet1",
+    "entry_count": 150,
+    "scope_note": "完整保留官方名录中证券公司及单列资产管理机构，不将记录数量视为独立券商集团数量。",
+    "aliases_policy": "机械移除法律形式尾缀作为基础检索别名；另行核实的品牌和历史检索别名及其关系见source-evidence.json，不能据别名推断独立法律主体仍存续。",
+    "coverage_note": "名录用于逐家检索计划，不代表对应券商已成功检索或官方采购入口已接入；采购入口为空的记录仍待核验。",
+    "source_evidence_file": "data/bid-alerts/source-evidence.json"
+  },
+  "brokers": [
+    {
+      "id": "csrc-6e362f5bc384",
+      "name": "爱建证券有限责任公司",
+      "official_sequence": 1,
+      "jurisdiction": "上海",
+      "aliases": [
+        "爱建证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-51cc937a5473",
+      "name": "国投证券股份有限公司",
+      "official_sequence": 2,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "国投证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-1613de777984",
+      "name": "北京高华证券有限责任公司",
+      "official_sequence": 3,
+      "jurisdiction": "北京",
+      "aliases": [
+        "北京高华证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-463b5cc7b699",
+      "name": "渤海证券股份有限公司",
+      "official_sequence": 4,
+      "jurisdiction": "天津",
+      "aliases": [
+        "渤海证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-7ee7469fef13",
+      "name": "财达证券股份有限公司",
+      "official_sequence": 5,
+      "jurisdiction": "河北",
+      "aliases": [
+        "财达证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-b69f9005d5b5",
+      "name": "财信证券股份有限公司",
+      "official_sequence": 6,
+      "jurisdiction": "湖南",
+      "aliases": [
+        "财信证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-3324fa914890",
+      "name": "财通证券股份有限公司",
+      "official_sequence": 7,
+      "jurisdiction": "浙江",
+      "aliases": [
+        "财通证券"
+      ],
+      "procurement_urls": [
+        "https://www.ctsec.com/bidding",
+        "https://www.ctsec.com/bidding/list/1",
+        "https://www.ctsec.com/bidding/list/2",
+        "https://www.ctsec.com/bidding/list/3"
+      ],
+      "coverage_status": "configured_not_guaranteed",
+      "source_evidence_ids": [
+        "ctsec-public-procurement"
+      ]
+    },
+    {
+      "id": "csrc-d7ec09f080e7",
+      "name": "财通证券资产管理有限公司",
+      "official_sequence": 8,
+      "jurisdiction": "浙江",
+      "aliases": [
+        "财通证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-eec964d1c9f8",
+      "name": "长城国瑞证券有限公司",
+      "official_sequence": 9,
+      "jurisdiction": "厦门",
+      "aliases": [
+        "长城国瑞证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-99aac9eeea58",
+      "name": "长城证券股份有限公司",
+      "official_sequence": 10,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "长城证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-f9f54d4c5c0e",
+      "name": "长江证券（上海）资产管理有限公司",
+      "official_sequence": 11,
+      "jurisdiction": "上海",
+      "aliases": [
+        "长江证券（上海）资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-9c568436ced8",
+      "name": "长江证券承销保荐有限公司",
+      "official_sequence": 12,
+      "jurisdiction": "上海",
+      "aliases": [
+        "长江证券承销保荐"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-cee434b6fb28",
+      "name": "长江证券股份有限公司",
+      "official_sequence": 13,
+      "jurisdiction": "湖北",
+      "aliases": [
+        "长江证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-30db92b3409b",
+      "name": "麦高证券有限责任公司",
+      "official_sequence": 14,
+      "jurisdiction": "辽宁",
+      "aliases": [
+        "麦高证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-dd871ed57085",
+      "name": "川财证券有限责任公司",
+      "official_sequence": 15,
+      "jurisdiction": "四川",
+      "aliases": [
+        "川财证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-56566cae17f9",
+      "name": "大通证券股份有限公司",
+      "official_sequence": 16,
+      "jurisdiction": "大连",
+      "aliases": [
+        "大通证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-7ce1329f13c6",
+      "name": "大同证券有限责任公司",
+      "official_sequence": 17,
+      "jurisdiction": "山西",
+      "aliases": [
+        "大同证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-1b90ac021571",
+      "name": "德邦证券股份有限公司",
+      "official_sequence": 18,
+      "jurisdiction": "山东",
+      "aliases": [
+        "德邦证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-3bb26d5641f6",
+      "name": "第一创业证券承销保荐有限责任公司",
+      "official_sequence": 19,
+      "jurisdiction": "北京",
+      "aliases": [
+        "第一创业证券承销保荐"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-22ce2d7030a5",
+      "name": "第一创业证券股份有限公司",
+      "official_sequence": 20,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "第一创业证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a2f42240d96a",
+      "name": "东北证券股份有限公司",
+      "official_sequence": 21,
+      "jurisdiction": "吉林",
+      "aliases": [
+        "东北证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-ca1323c5c90c",
+      "name": "东方证券股份有限公司",
+      "official_sequence": 22,
+      "jurisdiction": "上海",
+      "aliases": [
+        "东方证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-8dfa7ce7d95d",
+      "name": "东海证券股份有限公司",
+      "official_sequence": 23,
+      "jurisdiction": "江苏",
+      "aliases": [
+        "东海证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-258961784b6e",
+      "name": "东莞证券股份有限公司",
+      "official_sequence": 24,
+      "jurisdiction": "广东",
+      "aliases": [
+        "东莞证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-fd0eb85a5405",
+      "name": "东吴证券股份有限公司",
+      "official_sequence": 25,
+      "jurisdiction": "江苏",
+      "aliases": [
+        "东吴证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a2ea93af5637",
+      "name": "东兴证券股份有限公司",
+      "official_sequence": 26,
+      "jurisdiction": "北京",
+      "aliases": [
+        "东兴证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-9bf8dc8da71b",
+      "name": "方正证券股份有限公司",
+      "official_sequence": 27,
+      "jurisdiction": "湖南",
+      "aliases": [
+        "方正证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-86f09ad4eab6",
+      "name": "高盛（中国）证券有限责任公司",
+      "official_sequence": 28,
+      "jurisdiction": "北京",
+      "aliases": [
+        "高盛（中国）证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-01c48df4ff9c",
+      "name": "光大证券股份有限公司",
+      "official_sequence": 29,
+      "jurisdiction": "上海",
+      "aliases": [
+        "光大证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-1a401007141b",
+      "name": "广发证券股份有限公司",
+      "official_sequence": 30,
+      "jurisdiction": "广东",
+      "aliases": [
+        "广发证券"
+      ],
+      "procurement_urls": [
+        "https://gfjc.gf.com.cn/gyszjgg/index.jhtml",
+        "https://gfjc.gf.com.cn/cggg/index.jhtml",
+        "https://gfjc.gf.com.cn/jggg/index.jhtml"
+      ],
+      "coverage_status": "configured_not_guaranteed",
+      "source_evidence_ids": [
+        "gf-public-procurement"
+      ]
+    },
+    {
+      "id": "csrc-13c678993200",
+      "name": "广发证券资产管理（广东）有限公司",
+      "official_sequence": 31,
+      "jurisdiction": "广东",
+      "aliases": [
+        "广发证券资产管理（广东）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-9b90a005ad37",
+      "name": "中信证券华南股份有限公司",
+      "official_sequence": 32,
+      "jurisdiction": "广东",
+      "aliases": [
+        "中信证券华南"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-ea69363b6bbb",
+      "name": "国都证券股份有限公司",
+      "official_sequence": 33,
+      "jurisdiction": "北京",
+      "aliases": [
+        "国都证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-5dd67570559f",
+      "name": "国海证券股份有限公司",
+      "official_sequence": 34,
+      "jurisdiction": "广西",
+      "aliases": [
+        "国海证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-3090d7250df6",
+      "name": "国金证券股份有限公司",
+      "official_sequence": 35,
+      "jurisdiction": "四川",
+      "aliases": [
+        "国金证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-b94ef16262c5",
+      "name": "国开证券股份有限公司",
+      "official_sequence": 36,
+      "jurisdiction": "北京",
+      "aliases": [
+        "国开证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-0e37f7d6f98f",
+      "name": "国联民生证券股份有限公司",
+      "official_sequence": 37,
+      "jurisdiction": "江苏",
+      "aliases": [
+        "国联民生证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-682f5cf3617b",
+      "name": "国盛证券股份有限公司",
+      "official_sequence": 38,
+      "jurisdiction": "江西",
+      "aliases": [
+        "国盛证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-cd4a8a5020d2",
+      "name": "国泰海通证券股份有限公司",
+      "official_sequence": 39,
+      "jurisdiction": "上海",
+      "aliases": [
+        "国泰海通证券",
+        "国泰海通",
+        "国泰君安证券",
+        "国泰君安证券股份有限公司",
+        "海通证券",
+        "海通证券股份有限公司"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification",
+      "alias_provenance_urls": [
+        "https://www.sse.com.cn/disclosure/announcement/general/c/c_20250407_10776862.shtml",
+        "https://static.sse.com.cn/disclosure/bond/announcement/company/c/new/2025-05-20/143301_20250520_HOS2.pdf"
+      ]
+    },
+    {
+      "id": "csrc-619c4f6f4c33",
+      "name": "国信证券股份有限公司",
+      "official_sequence": 40,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "国信证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-c3d00c1e5c5a",
+      "name": "国元证券股份有限公司",
+      "official_sequence": 41,
+      "jurisdiction": "安徽",
+      "aliases": [
+        "国元证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-f221ea038fca",
+      "name": "中天国富证券有限公司",
+      "official_sequence": 42,
+      "jurisdiction": "贵州",
+      "aliases": [
+        "中天国富证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-df6a177bb6ab",
+      "name": "恒泰长财证券有限责任公司",
+      "official_sequence": 43,
+      "jurisdiction": "吉林",
+      "aliases": [
+        "恒泰长财证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-d55045eca4cd",
+      "name": "金融街证券股份有限公司",
+      "official_sequence": 44,
+      "jurisdiction": "内蒙古",
+      "aliases": [
+        "金融街证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-50686dbad400",
+      "name": "红塔证券股份有限公司",
+      "official_sequence": 45,
+      "jurisdiction": "云南",
+      "aliases": [
+        "红塔证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-162438dfb675",
+      "name": "天府证券有限责任公司",
+      "official_sequence": 46,
+      "jurisdiction": "四川",
+      "aliases": [
+        "天府证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-d02377c837d7",
+      "name": "华安证券股份有限公司",
+      "official_sequence": 47,
+      "jurisdiction": "安徽",
+      "aliases": [
+        "华安证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-63369afc83eb",
+      "name": "华宝证券股份有限公司",
+      "official_sequence": 48,
+      "jurisdiction": "上海",
+      "aliases": [
+        "华宝证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-c133a39ce999",
+      "name": "华创证券有限责任公司",
+      "official_sequence": 49,
+      "jurisdiction": "贵州",
+      "aliases": [
+        "华创证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-b106bbf6e404",
+      "name": "华福证券股份有限公司",
+      "official_sequence": 50,
+      "jurisdiction": "福建",
+      "aliases": [
+        "华福证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e7c5a0ff8f0e",
+      "name": "华金证券股份有限公司",
+      "official_sequence": 51,
+      "jurisdiction": "上海",
+      "aliases": [
+        "华金证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-7cf82aea02c0",
+      "name": "华林证券股份有限公司",
+      "official_sequence": 52,
+      "jurisdiction": "西藏",
+      "aliases": [
+        "华林证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-91da9325bf8a",
+      "name": "华龙证券股份有限公司",
+      "official_sequence": 53,
+      "jurisdiction": "甘肃",
+      "aliases": [
+        "华龙证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-f461ef95bae5",
+      "name": "国新证券股份有限公司",
+      "official_sequence": 54,
+      "jurisdiction": "北京",
+      "aliases": [
+        "国新证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a4caabf5ce74",
+      "name": "华泰联合证券有限责任公司",
+      "official_sequence": 55,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "华泰联合证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-1197ca235d2f",
+      "name": "华泰证券(上海）资产管理有限公司",
+      "official_sequence": 56,
+      "jurisdiction": "上海",
+      "aliases": [
+        "华泰证券(上海）资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-05ead6c099fd",
+      "name": "华泰证券股份有限公司",
+      "official_sequence": 57,
+      "jurisdiction": "江苏",
+      "aliases": [
+        "华泰证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-fa37318f9f8f",
+      "name": "华西证券股份有限公司",
+      "official_sequence": 58,
+      "jurisdiction": "四川",
+      "aliases": [
+        "华西证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-d75be32d330f",
+      "name": "华鑫证券有限责任公司",
+      "official_sequence": 59,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "华鑫证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-fba6b4693aff",
+      "name": "国联民生证券承销保荐有限公司",
+      "official_sequence": 60,
+      "jurisdiction": "上海",
+      "aliases": [
+        "国联民生证券承销保荐"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-00f373a35bd2",
+      "name": "江海证券有限公司",
+      "official_sequence": 61,
+      "jurisdiction": "黑龙江",
+      "aliases": [
+        "江海证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a434c7ae5145",
+      "name": "金通证券有限责任公司",
+      "official_sequence": 62,
+      "jurisdiction": "浙江",
+      "aliases": [
+        "金通证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-20c9b6f6c82e",
+      "name": "金元证券股份有限公司",
+      "official_sequence": 63,
+      "jurisdiction": "海南",
+      "aliases": [
+        "金元证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-464af91add3b",
+      "name": "华源证券股份有限公司",
+      "official_sequence": 64,
+      "jurisdiction": "青海",
+      "aliases": [
+        "华源证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-14faa8476649",
+      "name": "开源证券股份有限公司",
+      "official_sequence": 65,
+      "jurisdiction": "陕西",
+      "aliases": [
+        "开源证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-76129db97855",
+      "name": "粤开证券股份有限公司",
+      "official_sequence": 66,
+      "jurisdiction": "广东",
+      "aliases": [
+        "粤开证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e1937ae86700",
+      "name": "民生证券股份有限公司",
+      "official_sequence": 67,
+      "jurisdiction": "上海",
+      "aliases": [
+        "民生证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-463ab57d0e40",
+      "name": "摩根士丹利证券（中国）有限公司",
+      "official_sequence": 68,
+      "jurisdiction": "上海",
+      "aliases": [
+        "摩根士丹利证券（中国）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-fccdcb2321a6",
+      "name": "南京证券股份有限公司",
+      "official_sequence": 69,
+      "jurisdiction": "江苏",
+      "aliases": [
+        "南京证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-852e2710976a",
+      "name": "平安证券股份有限公司",
+      "official_sequence": 70,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "平安证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-01e6d91dde2c",
+      "name": "中泰证券（上海）资产管理有限公司",
+      "official_sequence": 71,
+      "jurisdiction": "上海",
+      "aliases": [
+        "中泰证券（上海）资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-3bd3dc60cc52",
+      "name": "中泰证券股份有限公司",
+      "official_sequence": 72,
+      "jurisdiction": "山东",
+      "aliases": [
+        "中泰证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e69b17240219",
+      "name": "国融证券股份有限公司",
+      "official_sequence": 73,
+      "jurisdiction": "内蒙古",
+      "aliases": [
+        "国融证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-188ed64b7b5c",
+      "name": "北京证券有限责任公司",
+      "official_sequence": 74,
+      "jurisdiction": "北京",
+      "aliases": [
+        "北京证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-4b4f492e23e5",
+      "name": "瑞银证券有限责任公司",
+      "official_sequence": 75,
+      "jurisdiction": "北京",
+      "aliases": [
+        "瑞银证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a3b6c4de1a52",
+      "name": "山西证券股份有限公司",
+      "official_sequence": 76,
+      "jurisdiction": "山西",
+      "aliases": [
+        "山西证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-56670b093303",
+      "name": "上海东方证券资产管理有限公司",
+      "official_sequence": 77,
+      "jurisdiction": "上海",
+      "aliases": [
+        "上海东方证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-2886389085d0",
+      "name": "上海光大证券资产管理有限公司",
+      "official_sequence": 78,
+      "jurisdiction": "上海",
+      "aliases": [
+        "上海光大证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-758318b2e203",
+      "name": "上海国泰海通证券资产管理有限公司",
+      "official_sequence": 79,
+      "jurisdiction": "上海",
+      "aliases": [
+        "上海国泰海通证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-6d326849c395",
+      "name": "上海海通证券资产管理有限公司",
+      "official_sequence": 80,
+      "jurisdiction": "上海",
+      "aliases": [
+        "上海海通证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-40999053a3d9",
+      "name": "上海证券有限责任公司",
+      "official_sequence": 81,
+      "jurisdiction": "上海",
+      "aliases": [
+        "上海证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-b8c788c18381",
+      "name": "申万宏源西部证券有限公司",
+      "official_sequence": 82,
+      "jurisdiction": "新疆",
+      "aliases": [
+        "申万宏源西部证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-ffeb358ad5bd",
+      "name": "申万宏源证券承销保荐有限责任公司",
+      "official_sequence": 83,
+      "jurisdiction": "新疆",
+      "aliases": [
+        "申万宏源证券承销保荐"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a6c87062c411",
+      "name": "申万宏源证券有限公司",
+      "official_sequence": 84,
+      "jurisdiction": "上海",
+      "aliases": [
+        "申万宏源证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-d10a17931a7c",
+      "name": "世纪证券有限责任公司",
+      "official_sequence": 85,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "世纪证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-98f1c0e8dbc2",
+      "name": "首创证券股份有限公司",
+      "official_sequence": 86,
+      "jurisdiction": "北京",
+      "aliases": [
+        "首创证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a6443f22615b",
+      "name": "太平洋证券股份有限公司",
+      "official_sequence": 87,
+      "jurisdiction": "云南",
+      "aliases": [
+        "太平洋证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-dceacb4ac5b1",
+      "name": "天风证券股份有限公司",
+      "official_sequence": 88,
+      "jurisdiction": "湖北",
+      "aliases": [
+        "天风证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-970e7118df29",
+      "name": "万和证券股份有限公司",
+      "official_sequence": 89,
+      "jurisdiction": "海南",
+      "aliases": [
+        "万和证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-ce9ef7057831",
+      "name": "万联证券股份有限公司",
+      "official_sequence": 90,
+      "jurisdiction": "广东",
+      "aliases": [
+        "万联证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-62807069f7a6",
+      "name": "五矿证券有限公司",
+      "official_sequence": 91,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "五矿证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-dbdfab7fb8bd",
+      "name": "西部证券股份有限公司",
+      "official_sequence": 92,
+      "jurisdiction": "陕西",
+      "aliases": [
+        "西部证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-0f428b54e24d",
+      "name": "东方财富证券股份有限公司",
+      "official_sequence": 93,
+      "jurisdiction": "西藏",
+      "aliases": [
+        "东方财富证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-1f030d5209b3",
+      "name": "西南证券股份有限公司",
+      "official_sequence": 94,
+      "jurisdiction": "重庆",
+      "aliases": [
+        "西南证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a901968dbaab",
+      "name": "湘财证券股份有限公司",
+      "official_sequence": 95,
+      "jurisdiction": "湖南",
+      "aliases": [
+        "湘财证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-360648415ae2",
+      "name": "诚通证券股份有限公司",
+      "official_sequence": 96,
+      "jurisdiction": "北京",
+      "aliases": [
+        "诚通证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-f86f7350a352",
+      "name": "信达证券股份有限公司",
+      "official_sequence": 97,
+      "jurisdiction": "北京",
+      "aliases": [
+        "信达证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-7a47d756b86e",
+      "name": "兴业证券股份有限公司",
+      "official_sequence": 98,
+      "jurisdiction": "福建",
+      "aliases": [
+        "兴业证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-c30f97aec313",
+      "name": "兴证证券资产管理有限公司",
+      "official_sequence": 99,
+      "jurisdiction": "福建",
+      "aliases": [
+        "兴证证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-9d20c46870f1",
+      "name": "银河金汇证券资产管理有限公司",
+      "official_sequence": 100,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "银河金汇证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-7c2f2c8ab370",
+      "name": "银泰证券有限责任公司",
+      "official_sequence": 101,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "银泰证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-40251a99cd17",
+      "name": "英大证券有限责任公司",
+      "official_sequence": 102,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "英大证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-0a4e197d0ad7",
+      "name": "招商证券股份有限公司",
+      "official_sequence": 103,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "招商证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-0a2eedf1380a",
+      "name": "招商证券资产管理有限公司",
+      "official_sequence": 104,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "招商证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e97e6f61c6dc",
+      "name": "浙江浙商证券资产管理有限公司",
+      "official_sequence": 105,
+      "jurisdiction": "浙江",
+      "aliases": [
+        "浙江浙商证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a776592df20d",
+      "name": "浙商证券股份有限公司",
+      "official_sequence": 106,
+      "jurisdiction": "浙江",
+      "aliases": [
+        "浙商证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-9fff24fdf405",
+      "name": "中德证券有限责任公司",
+      "official_sequence": 107,
+      "jurisdiction": "北京",
+      "aliases": [
+        "中德证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-2ca805c92d88",
+      "name": "中国国际金融股份有限公司",
+      "official_sequence": 108,
+      "jurisdiction": "北京",
+      "aliases": [
+        "中国国际金融",
+        "中金公司",
+        "CICC"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification",
+      "alias_provenance_urls": [
+        "https://www.cicc.com/upload/file/2025/10/31/10f03f11-42f9-474d-a862-6f6159df0820.pdf"
+      ]
+    },
+    {
+      "id": "csrc-0cf7fc0e13b2",
+      "name": "方正证券承销保荐有限责任公司",
+      "official_sequence": 109,
+      "jurisdiction": "北京",
+      "aliases": [
+        "方正证券承销保荐"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-2c94a2b53d73",
+      "name": "中国银河证券股份有限公司",
+      "official_sequence": 110,
+      "jurisdiction": "北京",
+      "aliases": [
+        "中国银河证券"
+      ],
+      "procurement_urls": [
+        "https://www.chinastock.com.cn/website2020/announcement/queryPurchaseResultList?pageNo=1&pageSize=10",
+        "https://www.chinastock.com.cn/website2020/announcement/queryPurchaseReqList?pageNo=1&pageSize=10"
+      ],
+      "coverage_status": "configured_not_guaranteed",
+      "source_evidence_ids": [
+        "galaxy-public-procurement-api"
+      ]
+    },
+    {
+      "id": "csrc-d142ac244a62",
+      "name": "中国中金财富证券有限公司",
+      "official_sequence": 111,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "中国中金财富证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-b3cb4dd1a3e7",
+      "name": "中航证券有限公司",
+      "official_sequence": 112,
+      "jurisdiction": "江西",
+      "aliases": [
+        "中航证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-d328db675bd9",
+      "name": "中山证券有限责任公司",
+      "official_sequence": 113,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "中山证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-6c7ca3c867ba",
+      "name": "中天证券股份有限公司",
+      "official_sequence": 114,
+      "jurisdiction": "辽宁",
+      "aliases": [
+        "中天证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-5cdabf8785e4",
+      "name": "中信建投证券股份有限公司",
+      "official_sequence": 115,
+      "jurisdiction": "北京",
+      "aliases": [
+        "中信建投证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e525cbf945cb",
+      "name": "中信证券（山东）有限责任公司",
+      "official_sequence": 116,
+      "jurisdiction": "青岛",
+      "aliases": [
+        "中信证券（山东）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-47aa9b9e629a",
+      "name": "中信证券股份有限公司",
+      "official_sequence": 117,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "中信证券"
+      ],
+      "procurement_urls": [
+        "https://www.citics.com/newsite/xxgs/cgxmjg/",
+        "https://www.citics.com/newsite/xxgs/cgxmjg/index_1.html"
+      ],
+      "coverage_status": "configured_not_guaranteed",
+      "source_evidence_ids": [
+        "citics-public-procurement"
+      ]
+    },
+    {
+      "id": "csrc-eb1a99b64a1c",
+      "name": "中银国际证券股份有限公司",
+      "official_sequence": 118,
+      "jurisdiction": "上海",
+      "aliases": [
+        "中银国际证券"
+      ],
+      "procurement_urls": [
+        "https://www.bocichina.com/main/investorrelations/newscenter/purchaseann/index.shtml"
+      ],
+      "coverage_status": "configured_not_guaranteed",
+      "source_evidence_ids": [
+        "boci-public-procurement"
+      ]
+    },
+    {
+      "id": "csrc-f60f54517331",
+      "name": "中邮证券有限责任公司",
+      "official_sequence": 119,
+      "jurisdiction": "陕西",
+      "aliases": [
+        "中邮证券"
+      ],
+      "procurement_urls": [
+        "https://www.chinapost.com.cn/cn/category/1813/137352-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137353-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137350-1.htm",
+        "https://www.chinapost.com.cn/cn/category/2405/20456-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137351-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137348-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137347-1.htm",
+        "https://www.chinapost.com.cn/cn/category/2507/12225-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/922419-1.htm"
+      ],
+      "coverage_status": "configured_not_guaranteed",
+      "source_evidence_ids": [
+        "cnpsec-group-procurement"
+      ]
+    },
+    {
+      "id": "csrc-6f0d0df4d24d",
+      "name": "中原证券股份有限公司",
+      "official_sequence": 120,
+      "jurisdiction": "河南",
+      "aliases": [
+        "中原证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a101eef90909",
+      "name": "联储证券股份有限公司",
+      "official_sequence": 121,
+      "jurisdiction": "青岛",
+      "aliases": [
+        "联储证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-18427b13aca7",
+      "name": "国盛证券资产管理有限公司",
+      "official_sequence": 122,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "国盛证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-740d34dd27ea",
+      "name": "东证融汇证券资产管理有限公司",
+      "official_sequence": 123,
+      "jurisdiction": "上海",
+      "aliases": [
+        "东证融汇证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e538b0b394a4",
+      "name": "渤海汇金证券资产管理有限公司",
+      "official_sequence": 124,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "渤海汇金证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-8b21f83b9cd0",
+      "name": "申港证券股份有限公司",
+      "official_sequence": 125,
+      "jurisdiction": "上海",
+      "aliases": [
+        "申港证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-0fe017e447a0",
+      "name": "华兴证券有限公司",
+      "official_sequence": 126,
+      "jurisdiction": "上海",
+      "aliases": [
+        "华兴证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-5b3e8b7d8735",
+      "name": "汇丰前海证券有限责任公司",
+      "official_sequence": 127,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "汇丰前海证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-8054508066ac",
+      "name": "东亚前海证券有限责任公司",
+      "official_sequence": 128,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "东亚前海证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-0c3781dc4487",
+      "name": "野村东方国际证券有限公司",
+      "official_sequence": 129,
+      "jurisdiction": "上海",
+      "aliases": [
+        "野村东方国际证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-495d737ed97d",
+      "name": "摩根大通证券（中国）有限公司",
+      "official_sequence": 130,
+      "jurisdiction": "上海",
+      "aliases": [
+        "摩根大通证券（中国）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-4b7f26a45b1a",
+      "name": "国投证券资产管理有限公司",
+      "official_sequence": 131,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "国投证券资产管理"
+      ],
+      "procurement_urls": [
+        "https://www.sdicc.com.cn/"
+      ],
+      "coverage_status": "configured_not_guaranteed",
+      "source_evidence_ids": [
+        "sdic-public-procurement"
+      ]
+    },
+    {
+      "id": "csrc-85bb52b7b200",
+      "name": "金圆统一证券有限公司",
+      "official_sequence": 132,
+      "jurisdiction": "厦门",
+      "aliases": [
+        "金圆统一证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-44e9d09aa83e",
+      "name": "甬兴证券有限公司",
+      "official_sequence": 133,
+      "jurisdiction": "宁波",
+      "aliases": [
+        "甬兴证券"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-5597bcfda7a1",
+      "name": "上海甬兴证券资产管理有限公司",
+      "official_sequence": 134,
+      "jurisdiction": "上海",
+      "aliases": [
+        "上海甬兴证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-a4839ed8392e",
+      "name": "天风（上海）证券资产管理有限公司",
+      "official_sequence": 135,
+      "jurisdiction": "上海",
+      "aliases": [
+        "天风（上海）证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e65cbd10b6e1",
+      "name": "德邦证券资产管理有限公司",
+      "official_sequence": 136,
+      "jurisdiction": "上海",
+      "aliases": [
+        "德邦证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-958bc97419ff",
+      "name": "星展证券（中国）有限公司",
+      "official_sequence": 137,
+      "jurisdiction": "上海",
+      "aliases": [
+        "星展证券（中国）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-ba57e9970835",
+      "name": "大和证券（中国）有限责任公司",
+      "official_sequence": 138,
+      "jurisdiction": "北京",
+      "aliases": [
+        "大和证券（中国）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-18ad73919322",
+      "name": "国金证券资产管理有限公司",
+      "official_sequence": 139,
+      "jurisdiction": "上海",
+      "aliases": [
+        "国金证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-9b5d530f1e51",
+      "name": "万联证券资产管理（广东）有限公司",
+      "official_sequence": 140,
+      "jurisdiction": "广东",
+      "aliases": [
+        "万联证券资产管理（广东）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-7f681312ead4",
+      "name": "山证（上海）资产管理有限公司",
+      "official_sequence": 141,
+      "jurisdiction": "上海",
+      "aliases": [
+        "山证（上海）资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-bc2050d6c14a",
+      "name": "申万宏源证券资产管理有限公司",
+      "official_sequence": 142,
+      "jurisdiction": "上海",
+      "aliases": [
+        "申万宏源证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e5c2c4b12e71",
+      "name": "中信证券资产管理有限公司",
+      "official_sequence": 143,
+      "jurisdiction": "北京",
+      "aliases": [
+        "中信证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-9aa0e83b2947",
+      "name": "渣打证券（中国）有限公司",
+      "official_sequence": 144,
+      "jurisdiction": "北京",
+      "aliases": [
+        "渣打证券（中国）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-d50a0af2eac9",
+      "name": "国联证券资产管理有限公司",
+      "official_sequence": 145,
+      "jurisdiction": "青岛",
+      "aliases": [
+        "国联证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-41a53029ff89",
+      "name": "华安证券资产管理有限公司",
+      "official_sequence": 146,
+      "jurisdiction": "安徽",
+      "aliases": [
+        "华安证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-234a6dcdd597",
+      "name": "华福证券资产管理有限公司",
+      "official_sequence": 147,
+      "jurisdiction": "福建",
+      "aliases": [
+        "华福证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-e9449a55fb2b",
+      "name": "长城证券资产管理有限公司",
+      "official_sequence": 148,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "长城证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-df4f8bf58a99",
+      "name": "法巴证券（中国）有限公司",
+      "official_sequence": 149,
+      "jurisdiction": "上海",
+      "aliases": [
+        "法巴证券（中国）"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    },
+    {
+      "id": "csrc-eb59569cb2ed",
+      "name": "国信证券资产管理有限公司",
+      "official_sequence": 150,
+      "jurisdiction": "深圳",
+      "aliases": [
+        "国信证券资产管理"
+      ],
+      "procurement_urls": [],
+      "coverage_status": "pending_verification"
+    }
+  ]
+}

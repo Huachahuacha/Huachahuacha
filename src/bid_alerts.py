@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass, replace
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from email.message import EmailMessage
 import hashlib
@@ -29,6 +30,18 @@ except Exception:
     pass
 
 import requests
+
+from .bid_coverage import (
+    DEFAULT_REGISTRY,
+    PROCUREMENT_TERMS,
+    RESEARCH_TERMS,
+    build_broker_queries,
+    is_research_procurement,
+    load_brokers,
+    matching_brokers,
+    next_list_page,
+    page_links,
+)
 
 
 DEFAULT_KEYWORDS = (
@@ -71,7 +84,13 @@ DEFAULT_KEYWORDS = (
     "专家资源",
     "咨询中介机构",
     "咨询平台服务",
+    "专家顾问",
+    "专家库服务",
+    "投研咨询",
+    "外部研究咨询",
+    "智库服务",
 )
+ESSENTIAL_COVERAGE_KEYWORDS = ("专家网络", "专家访谈", "专家库", "专家资源", "专家顾问", "投研咨询", "外部研究咨询", "智库服务")
 
 DEFAULT_SITE_FILTERS = (
     "ctbpsp.com",
@@ -90,6 +109,7 @@ DEFAULT_SITE_FILTERS = (
     "supplier.gtht.com",
     "bocichina.com",
     "ctsec.com",
+    "eps.qdgxjt.com",
     "stbid.stdzzb.com",
     "bbda.com",
     "epp.sinomach.com.cn",
@@ -153,6 +173,18 @@ DEFAULT_SOURCE_URLS = (
     "https://www.ctsec.com/bidding/list/1",
     "https://www.ctsec.com/bidding/list/2",
     "https://www.ctsec.com/bidding/list/3",
+    "https://eps.qdgxjt.com/cms/channel/xmgg1qb/index.htm",
+    "https://eps.qdgxjt.com/cms/channel/xmgg1qb/index.htm?pageNo=2",
+    "https://eps.qdgxjt.com/cms/channel/xmgg1qb/index.htm?pageNo=3",
+    "https://eps.qdgxjt.com/cms/channel/xmgg2qb/index.htm",
+    "https://eps.qdgxjt.com/cms/channel/xmgg2qb/index.htm?pageNo=2",
+    "https://eps.qdgxjt.com/cms/channel/xmgg2qb/index.htm?pageNo=3",
+    "https://eps.qdgxjt.com/cms/channel/xmgg3qb/index.htm",
+    "https://eps.qdgxjt.com/cms/channel/xmgg3qb/index.htm?pageNo=2",
+    "https://eps.qdgxjt.com/cms/channel/xmgg3qb/index.htm?pageNo=3",
+    "https://eps.qdgxjt.com/cms/channel/xmgg4qb/index.htm",
+    "https://eps.qdgxjt.com/cms/channel/xmgg4qb/index.htm?pageNo=2",
+    "https://eps.qdgxjt.com/cms/channel/xmgg4qb/index.htm?pageNo=3",
 )
 DEFAULT_SEARCH_URL_TEMPLATE = "https://www.bing.com/search?q={query}&format=rss"
 DEFAULT_ENV_FILE = ".env"
@@ -194,6 +226,12 @@ STRONG_TERMS = (
     "专家网络",
     "专家选型",
     "咨询中介机构",
+    "专家库服务",
+    "专家顾问",
+    "专家资源",
+    "投研咨询",
+    "外部研究咨询",
+    "智库服务",
 )
 OPPORTUNITY_TERMS = ("采购公告", "招标公告", "公开招标", "选聘", "入围", "框架采购", "供应商招标", "征集")
 RESULT_TERMS = (
@@ -226,7 +264,7 @@ NOTICE_STAGE_LABELS = {
     "result": "结果/成交",
     "other": "其他",
 }
-PRIORITY_BUCKETS = ("立即关注", "候选机会", "结果复盘", "其他")
+PRIORITY_BUCKETS = ("立即关注", "候选机会", "待人工核实", "结果复盘", "其他")
 OPPORTUNITY_STAGE_TERMS = (
     "采购公告",
     "招标公告",
@@ -291,6 +329,12 @@ MIN_TARGET_TERMS = (
     "咨询中介机构",
     "行业专家",
     "专家服务",
+    "专家库",
+    "专家资源",
+    "专家顾问",
+    "投研咨询",
+    "外部研究咨询",
+    "智库服务",
 )
 NATIONAL_PLATFORM_DOMAINS = ("ctbpsp.com", "cebpubservice.com")
 CTBPSP_UUID_RE = re.compile(r"(?:[?&]uuid=|uuid%3D)([0-9a-fA-F-]{36})")
@@ -338,6 +382,13 @@ class BidAlertSettings:
     ctbpsp_mirror_search: bool = True
     ctbpsp_mirror_site_filters: tuple[str, ...] = DEFAULT_CTBPSP_MIRROR_SITE_FILTERS
     ctbpsp_mirror_max_items: int = 5
+    broker_registry_file: Path | None = None
+    audit_report_file: Path | None = None
+    fetch_workers: int = 1
+    source_max_pages: int = 1
+    fetch_details: bool = False
+    max_detail_pages: int = 500
+    scan_budget_seconds: int = 3600
 
 
 @dataclass(frozen=True)
@@ -349,6 +400,10 @@ class AlertItem:
     source: str
     keyword: str
     query: str
+    body: str = ""
+    matched_brokers: tuple[str, ...] = ()
+    review_required: bool = False
+    record_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -367,6 +422,7 @@ DEFAULT_SOURCE_PROFILES = (
     SourceProfile("广元机电采购网", "gy.chinamae.com", "daily", "source-page", ("证券", "镜像")),
     SourceProfile("中国华能集团电子招投标系统", "ec.chng.com.cn", "daily", "mirror", ("证券", "央企")),
     SourceProfile("财通证券招标公告", "ctsec.com", "hot", "source-page", ("证券",)),
+    SourceProfile("青岛国信招投标采购平台", "eps.qdgxjt.com", "hot", "source-page", ("国企", "源站")),
     SourceProfile("江苏省招标投标公共服务平台", "jszbtb.com", "daily", "mirror", ("证券",)),
     SourceProfile("陕西采购与招标网", "sntba.com", "daily", "mirror", ("证券",)),
 )
@@ -441,7 +497,10 @@ def source_display_name(item: AlertItem) -> str:
 
 def load_settings(env: dict[str, str] | None = None) -> BidAlertSettings:
     values = env if env is not None else {**load_dotenv_values(), **dict(os.environ)}
+    coverage_enabled = _env_bool(values.get("BID_ALERT_BROKER_COVERAGE"), True)
     keywords = _split_list(values.get("BID_ALERT_KEYWORDS"), DEFAULT_KEYWORDS)
+    if coverage_enabled:
+        keywords = tuple(dict.fromkeys((*keywords, *ESSENTIAL_COVERAGE_KEYWORDS)))
     site_filters = _split_list(values.get("BID_ALERT_SITE_FILTERS"), DEFAULT_SITE_FILTERS)
     extra_queries = _split_list(values.get("BID_ALERT_EXTRA_QUERIES"), DEFAULT_EXTRA_QUERIES)
     source_urls = _split_list(values.get("BID_ALERT_SOURCE_URLS"), DEFAULT_SOURCE_URLS)
@@ -500,6 +559,13 @@ def load_settings(env: dict[str, str] | None = None) -> BidAlertSettings:
             5,
             name="BID_ALERT_CTBPSP_MIRROR_MAX_ITEMS",
         ),
+        broker_registry_file=Path(values.get("BID_ALERT_BROKER_REGISTRY", str(DEFAULT_REGISTRY))) if coverage_enabled else None,
+        audit_report_file=Path(values.get("BID_ALERT_REPORT_FILE", str(Path(values.get("BID_ALERT_STATE_FILE", DEFAULT_STATE_FILE)).parent / "coverage-report.json"))),
+        fetch_workers=max(1, min(8, _env_int(values.get("BID_ALERT_FETCH_WORKERS"), 4, name="BID_ALERT_FETCH_WORKERS"))),
+        source_max_pages=max(1, _env_int(values.get("BID_ALERT_SOURCE_MAX_PAGES"), 5, name="BID_ALERT_SOURCE_MAX_PAGES")),
+        fetch_details=_env_bool(values.get("BID_ALERT_FETCH_DETAILS"), True),
+        max_detail_pages=max(1, _env_int(values.get("BID_ALERT_MAX_DETAIL_PAGES"), 500, name="BID_ALERT_MAX_DETAIL_PAGES")),
+        scan_budget_seconds=max(1, _env_int(values.get("BID_ALERT_SCAN_BUDGET_SECONDS"), 3600, name="BID_ALERT_SCAN_BUDGET_SECONDS")),
     )
 
 
@@ -534,7 +600,11 @@ def build_queries(settings: BidAlertSettings) -> list[tuple[str, str, str]]:
         (extra_query, "", append_query_suffix(extra_query, settings.query_suffix))
         for extra_query in settings.extra_queries
     )
-    return queries
+    try:
+        queries.extend(build_broker_queries(load_brokers(settings.broker_registry_file), settings.query_suffix))
+    except (OSError, ValueError) as exc:
+        raise BidAlertConfigError(f"Cannot load broker registry: {exc}") from exc
+    return list(dict.fromkeys(queries))
 
 
 def _strip_markup(value: str) -> str:
@@ -608,7 +678,7 @@ def fetch_feed(url: str, *, timeout_seconds: int) -> str:
         response.raise_for_status()
     except requests.RequestException as exc:
         return fetch_with_curl(url, timeout_seconds=timeout_seconds, label="search feed", original_error=exc)
-    return response.text
+    return decode_public_response(response)
 
 
 def fetch_page(url: str, *, timeout_seconds: int) -> str:
@@ -621,6 +691,14 @@ def fetch_page(url: str, *, timeout_seconds: int) -> str:
         response.raise_for_status()
     except requests.RequestException as exc:
         return fetch_with_curl(url, timeout_seconds=timeout_seconds, label="source page", original_error=exc)
+    return decode_public_response(response)
+
+
+def decode_public_response(response: requests.Response) -> str:
+    # Requests defaults text/html without a charset to Latin-1, even for Chinese pages.
+    if response.encoding is None or response.encoding.lower() == "iso-8859-1":
+        meta = re.search(rb"charset\s*=\s*[\"']?([A-Za-z0-9_-]+)", response.content[:4096], re.IGNORECASE)
+        response.encoding = meta.group(1).decode("ascii") if meta else (response.apparent_encoding or "utf-8")
     return response.text
 
 
@@ -805,31 +883,61 @@ def parse_structured_list_items(html_text: str, *, source_url: str) -> list[Aler
 
 def parse_anchor_items(html_text: str, *, source_url: str) -> list[AlertItem]:
     items: list[AlertItem] = []
-    for match in re.finditer(
-        r"<a\b(?P<attrs>[^>]*)>(?P<body>.*?)</a>",
-        html_text,
-        flags=re.IGNORECASE | re.DOTALL,
-    ):
-        attrs = match.group("attrs")
-        href_match = re.search(r"""href\s*=\s*["'](?P<href>[^"']+)["']""", attrs, flags=re.IGNORECASE)
-        if not href_match:
-            continue
-        title = _title_from_anchor(attrs, match.group("body"))
-        href = href_match.group("href").strip()
-        if not title or href.startswith(("javascript:", "#")):
+    for href, title_attribute, body_text in page_links(html_text):
+        title = title_attribute.strip() or body_text.strip()
+        href = href.strip()
+        link = urljoin(source_url, href)
+        if not href or not title or href.startswith("#") or urlsplit(link).scheme not in {"http", "https"}:
             continue
         items.append(
             AlertItem(
                 title=title,
-                link=urljoin(source_url, href),
+                link=link,
                 summary="",
-                published="",
+                published=_published_from_block(body_text),
                 source=urlsplit(source_url).netloc.lower(),
                 keyword="source-page",
                 query=source_url,
             )
         )
     return items
+
+
+def parse_galaxy_records(page_text: str, source_url: str) -> tuple[list[AlertItem], str | None] | None:
+    parts = urlsplit(source_url)
+    if parts.hostname != "www.chinastock.com.cn" or parts.path not in {
+        "/website2020/announcement/queryPurchaseResultList",
+        "/website2020/announcement/queryPurchaseReqList",
+    }:
+        return None
+    payload = json.loads(page_text)
+    if not isinstance(payload, dict):
+        raise BidAlertFetchError("银河证券采购接口未返回JSON对象")
+    data = payload.get("data", {})
+    result = payload.get("ret", {})
+    if not isinstance(data, dict) or not isinstance(result, dict) or result.get("error") != 0 or not isinstance(data.get("list"), list):
+        raise BidAlertFetchError("银河证券采购接口未返回有效成功列表")
+    records = []
+    for row in data["list"]:
+        if not isinstance(row, dict) or not row.get("id") or not row.get("projectName"):
+            raise BidAlertFetchError("银河证券采购记录缺少标识或项目名称")
+        record_id = f"{parts.path.rsplit('/', 1)[-1]}:{row['id']}"
+        records.append(AlertItem(
+            title=f"中国银河证券：{row['projectName']}",
+            link="https://www.chinastock.com.cn/newsite/online/purchaseAnnc.html",
+            summary=f"项目编号：{row.get('projectNo', '-')}。官方结构化采购记录，链接指向采购列表；详情入口待核实。",
+            published=str(row.get("showTime", "")),
+            source="www.chinastock.com.cn", keyword="source-record", query=source_url,
+            body=json.dumps(row, ensure_ascii=False, sort_keys=True), record_id=record_id,
+        ))
+    query = dict(parse_qsl(parts.query))
+    current_page = int(query.get("pageNo", "1"))
+    pages = int(data.get("pages", 0) or 0)
+    next_page = None
+    if current_page < pages:
+        query["pageNo"] = str(current_page + 1)
+        next_page = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), ""))
+    return records, next_page
 
 
 def parse_sdicc_table_items(html_text: str, *, source_url: str) -> list[AlertItem]:
@@ -890,17 +998,51 @@ def collect_source_page_items(
     settings: BidAlertSettings,
     *,
     progress: Callable[[str], None] | None = None,
+    audit: dict | None = None,
+    deadline: float | None = None,
 ) -> list[AlertItem]:
     items: list[AlertItem] = []
     errors: list[BidAlertFetchError] = []
-    for source_url in settings.source_urls:
-        _emit_progress(progress, f"读取源站公开页：{source_url}")
+    brokers = load_brokers(settings.broker_registry_file)
+    sources = tuple(dict.fromkeys((*settings.source_urls, *(url for broker in brokers for url in broker.procurement_urls))))
+    if settings.audit_report_file is not None and settings.audit_report_file.exists():
         try:
-            page_text = fetch_page(source_url, timeout_seconds=settings.request_timeout_seconds)
-        except BidAlertFetchError as exc:
-            errors.append(exc)
-            continue
-        items.extend(parse_public_html_items(page_text, source_url=source_url))
+            previous = json.loads(settings.audit_report_file.read_text(encoding="utf-8"))
+            sources = tuple(dict.fromkeys((*sources, *previous.get("list_pages_deferred", []))))
+        except (OSError, ValueError, TypeError):
+            pass
+    visited: set[str] = set()
+    failed_pages: set[str] = set()
+    for first_url in sources:
+        source_url: str | None = first_url
+        for _page in range(settings.source_max_pages):
+            if source_url is None or canonical_link(source_url) in visited:
+                break
+            if deadline is not None and time.monotonic() >= deadline:
+                if audit is not None:
+                    audit["sources"].append({"url": source_url, "status": "deferred", "items": 0})
+                break
+            visited.add(canonical_link(source_url))
+            _emit_progress(progress, f"读取源站公开页：{source_url}")
+            try:
+                page_text = fetch_page(source_url, timeout_seconds=settings.request_timeout_seconds)
+                structured = parse_galaxy_records(page_text, source_url)
+                parsed = structured[0] if structured is not None else parse_public_html_items(page_text, source_url=source_url)
+            except (BidAlertFetchError, ValueError) as exc:
+                errors.append(BidAlertFetchError(str(exc)))
+                failed_pages.add(source_url)
+                if audit is not None:
+                    audit["sources"].append({"url": source_url, "status": "error", "error": str(exc), "items": 0})
+                break
+            items.extend(parsed)
+            if audit is not None:
+                notice_count = sum(has_target_terms(item) or any(term in item.title for term in PROCUREMENT_TERMS) for item in parsed)
+                audit["sources"].append({"url": source_url, "status": "ok" if notice_count or structured is not None else "empty_or_dynamic", "items": len(parsed), "notice_candidates": notice_count})
+            source_url = structured[1] if structured is not None else next_list_page(page_text, source_url)
+        if source_url and canonical_link(source_url) not in visited and audit is not None:
+            audit["list_pages_deferred"].append(source_url)
+    if audit is not None:
+        audit["list_pages_deferred"] = list(dict.fromkeys([url for url in audit["list_pages_deferred"] if canonical_link(url) not in visited] + list(failed_pages)))
     if errors and not items:
         raise BidAlertFetchError(f"All source pages failed. First error: {errors[0]}")
     return sort_items_by_relevance(dedupe_items(items))
@@ -972,9 +1114,13 @@ def attach_national_platform_reference(candidate: AlertItem, original: AlertItem
 def search_public_mirrors_for_national_platform_item(
     item: AlertItem,
     settings: BidAlertSettings,
+    *,
+    deadline: float | None = None,
 ) -> list[AlertItem]:
     mirrors: list[AlertItem] = []
     for query in build_ctbpsp_mirror_queries(item, settings):
+        if deadline is not None and time.monotonic() >= deadline:
+            break
         url = build_search_url(settings.search_url_template, query)
         try:
             feed_text = fetch_feed(url, timeout_seconds=settings.request_timeout_seconds)
@@ -994,7 +1140,7 @@ def search_public_mirrors_for_national_platform_item(
     return sort_items_by_relevance(dedupe_items(mirrors))
 
 
-def enrich_national_platform_items(settings: BidAlertSettings, items: list[AlertItem]) -> list[AlertItem]:
+def enrich_national_platform_items(settings: BidAlertSettings, items: list[AlertItem], *, deadline: float | None = None) -> list[AlertItem]:
     if not settings.ctbpsp_mirror_search or settings.ctbpsp_mirror_max_items <= 0:
         return items
 
@@ -1002,7 +1148,9 @@ def enrich_national_platform_items(settings: BidAlertSettings, items: list[Alert
     enriched_items: list[AlertItem] = []
     national_platform_items = [item for item in items if is_national_platform_item(item)]
     for item in national_platform_items[: settings.ctbpsp_mirror_max_items]:
-        mirrors = search_public_mirrors_for_national_platform_item(item, settings)
+        if deadline is not None and time.monotonic() >= deadline:
+            break
+        mirrors = search_public_mirrors_for_national_platform_item(item, settings, deadline=deadline)
         if not mirrors:
             continue
         replacement_ids.add(item_id(item))
@@ -1020,30 +1168,156 @@ def collect_alert_items(
     items: list[AlertItem] = []
     errors: list[BidAlertFetchError] = []
     queries = build_queries(settings)
-    for index, (keyword, _site_filter, query) in enumerate(queries, start=1):
-        _emit_progress(progress, f"搜索公开 RSS：{index}/{len(queries)} {keyword}")
+    deadline = time.monotonic() + settings.scan_budget_seconds
+    phase_budget = settings.scan_budget_seconds / 4
+    query_deadline = deadline - phase_budget
+    deferred_queries: set[str] = set()
+    if settings.audit_report_file is not None and settings.audit_report_file.exists():
+        try:
+            previous = json.loads(settings.audit_report_file.read_text(encoding="utf-8"))
+            deferred_queries = {entry["query"] for entry in previous.get("queries", []) if entry.get("status") == "deferred"}
+        except (OSError, ValueError, TypeError, KeyError):
+            pass
+    queries.sort(key=lambda entry: (not entry[0].startswith("券商覆盖:"), entry[2] not in deferred_queries))
+    brokers = load_brokers(settings.broker_registry_file)
+    audit = {
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "github_run_id": os.environ.get("GITHUB_RUN_ID"),
+        "broker_count": len(brokers),
+        "brokers_with_configured_sources": sum(bool(broker.procurement_urls) for broker in brokers),
+        "brokers": [], "queries": [], "sources": [], "details": [],
+        "list_pages_deferred": [], "details_deferred": [],
+        "structured_records_without_details": [],
+        "limitations": ["公开搜索结果不是完整公告索引，搜索成功不等于已覆盖全部项目", "未公开或需登录的采购消息需要另行接入", "图片扫描PDF、旧版DOC及受限页面须人工复核"],
+    }
+
+    def fetch_query(entry: tuple[str, str, str]) -> tuple[list[AlertItem], dict]:
+        keyword, _site_filter, query = entry
+        if time.monotonic() >= query_deadline:
+            return [], {"query": query, "label": keyword, "status": "deferred", "items": 0}
         url = build_search_url(settings.search_url_template, query)
         try:
             feed_text = fetch_feed(url, timeout_seconds=settings.request_timeout_seconds)
-        except BidAlertFetchError as exc:
-            errors.append(exc)
-            continue
-        items.extend(
-            parse_feed(
-                feed_text,
-                keyword=keyword,
-                query=query,
-                max_items=settings.max_results_per_query,
-            )
-        )
+            if _local_name(ElementTree.fromstring(feed_text).tag) not in {"rss", "feed", "RDF"}:
+                raise BidAlertFetchError("Search endpoint returned a non-feed response")
+            parsed = parse_feed(feed_text, keyword=keyword, query=query, max_items=settings.max_results_per_query)
+            return parsed, {"query": query, "label": keyword, "status": "ok", "items": len(parsed), "at_client_limit": len(parsed) >= settings.max_results_per_query}
+        except (BidAlertFetchError, ElementTree.ParseError) as exc:
+            return [], {"query": query, "label": keyword, "status": "error", "error": str(exc), "items": 0}
+
     try:
-        items.extend(collect_source_page_items(settings, progress=progress))
+        source_deadline = min(deadline, time.monotonic() + phase_budget)
+        items.extend(collect_source_page_items(settings, progress=progress, audit=audit, deadline=source_deadline))
     except BidAlertFetchError as exc:
         errors.append(exc)
-    items = enrich_national_platform_items(settings, dedupe_items(items))
+    with ThreadPoolExecutor(max_workers=settings.fetch_workers) as executor:
+        for index, (parsed, query_report) in enumerate(executor.map(fetch_query, queries), start=1):
+            _emit_progress(progress, f"搜索公开 RSS：{index}/{len(queries)} {query_report['label']} [{query_report['status']}]")
+            items.extend(parsed)
+            audit["queries"].append(query_report)
+            if query_report["status"] == "error":
+                errors.append(BidAlertFetchError(query_report["error"]))
+    items = enrich_national_platform_items(settings, dedupe_items(items), deadline=query_deadline)
+    audit["structured_records_without_details"] = [{"record_id": item.record_id, "title": item.title, "list_url": item.link} for item in items if item.record_id]
+    if settings.fetch_details:
+        items = enrich_notice_documents(settings, items, audit=audit, progress=progress, deadline=deadline)
+    tagged = []
+    for item in items:
+        text = item_text(item)
+        matched = matching_brokers(text, brokers)
+        review = bool(matched) and is_research_procurement(text) and (not has_target_terms(item) or relevance_score(item) < settings.min_relevance_score)
+        tagged.append(replace(item, matched_brokers=matched, review_required=item.review_required or review))
+    for broker in brokers:
+        broker_queries = [entry for entry in audit["queries"] if entry["label"] == f"券商覆盖:{broker.name}"]
+        audit["brokers"].append({"name": broker.name, "planned_queries": len(broker_queries), "successful_queries": sum(entry["status"] == "ok" for entry in broker_queries), "procurement_urls": list(broker.procurement_urls), "source_status": "configured" if broker.procurement_urls else "search_only_pending_source_verification"})
+    audit["partial"] = any(entry["status"] != "ok" for entry in audit["queries"] + audit["sources"]) or any(entry["warnings"] for entry in audit["details"]) or bool(audit["details_deferred"] or audit["list_pages_deferred"] or audit.get("manual_review") or audit["structured_records_without_details"])
+    audit["completed_at"] = datetime.now(timezone.utc).isoformat()
+    audit["raw_items"] = len(tagged)
+    if settings.audit_report_file is not None:
+        save_state(settings.audit_report_file, audit)
+        _emit_progress(progress, f"覆盖报告：{settings.audit_report_file}；状态：{'存在缺口' if audit['partial'] else '本轮已配置任务完成'}")
     if errors and not items:
         raise BidAlertFetchError(f"All search feeds failed. First error: {errors[0]}")
-    return sort_items_by_relevance(dedupe_items(items))
+    return sort_items_by_relevance(dedupe_items(tagged))
+
+
+def enrich_notice_documents(
+    settings: BidAlertSettings,
+    items: list[AlertItem],
+    *,
+    audit: dict,
+    progress: Callable[[str], None] | None = None,
+    deadline: float | None = None,
+) -> list[AlertItem]:
+    from .bid_documents import enrich_document
+
+    pending: set[str] = set()
+    attempts: dict[str, int] = {}
+    manual_review: dict[str, dict] = {}
+    brokers = load_brokers(settings.broker_registry_file)
+    if settings.audit_report_file is not None and settings.audit_report_file.exists():
+        try:
+            previous = json.loads(settings.audit_report_file.read_text(encoding="utf-8"))
+            pending = set(previous.get("details_deferred", []))
+            attempts = previous.get("document_retry_counts", {})
+            manual_review = {row["url"]: row for row in previous.get("manual_review", []) if isinstance(row, dict) and isinstance(row.get("url"), str)}
+            backlog = []
+            for row in previous.get("deferred_items", []):
+                if isinstance(row, dict) and all(isinstance(row.get(key), str) for key in ("title", "link", "summary", "published", "source", "keyword", "query")):
+                    backlog.append(AlertItem(**{key: row[key] for key in ("title", "link", "summary", "published", "source", "keyword", "query")}))
+            items = dedupe_items(items + backlog)
+        except (OSError, ValueError, TypeError):
+            pass
+    candidates = [item for item in items if not item.record_id and item.link not in manual_review and len(item.title.strip()) >= 8 and (has_target_terms(item) or any(term in f"{item.title} {item.summary}" for term in PROCUREMENT_TERMS))]
+    candidates.sort(key=lambda item: (item.link in pending, has_target_terms(item), relevance_score(item)), reverse=True)
+    backlog_candidates = [item for item in candidates if item.link in pending]
+    fresh_candidates = [item for item in candidates if item.link not in pending]
+    selected = backlog_candidates[:max(1, settings.max_detail_pages // 2)]
+    selected.extend(fresh_candidates[:settings.max_detail_pages - len(selected)])
+    selected_ids = {item_id(item) for item in selected}
+    selected.extend(item for item in candidates if item_id(item) not in selected_ids)
+    selected = selected[:settings.max_detail_pages]
+    selected_ids = {item_id(item) for item in selected}
+    audit["details_deferred"] = [item.link for item in candidates if item_id(item) not in selected_ids]
+    audit["deferred_items"] = [asdict(item) for item in candidates if item_id(item) not in selected_ids]
+    enriched: dict[str, AlertItem] = {}
+
+    def fetch_document(item: AlertItem) -> tuple[AlertItem, tuple[str, ...]]:
+        if deadline is not None and time.monotonic() >= deadline:
+            return item, ("本轮运行预算耗尽，正文待续读",)
+        try:
+            document = enrich_document(item.link, item.title, settings.request_timeout_seconds)
+            result = replace(item, body=document.text)
+            warnings = document.warnings
+        except (OSError, ValueError, RuntimeError, requests.RequestException) as exc:
+            result, warnings = item, (f"正文读取失败：{type(exc).__name__}",)
+        text = item_text(result)
+        if warnings and (is_research_procurement(text) or (matching_brokers(text, brokers) and any(term in text for term in PROCUREMENT_TERMS))):
+            result = replace(result, review_required=True)
+        return result, warnings
+
+    with ThreadPoolExecutor(max_workers=settings.fetch_workers) as executor:
+        for index, (item, warnings) in enumerate(executor.map(fetch_document, selected), start=1):
+            enriched[item_id(item)] = item
+            audit["details"].append({"url": item.link, "text_characters": len(item.body), "warnings": list(warnings)})
+            if warnings:
+                if any("预算耗尽" in warning for warning in warnings):
+                    audit["details_deferred"].append(item.link)
+                    audit["deferred_items"].append(asdict(item))
+                    continue
+                attempts[item.link] = int(attempts.get(item.link, 0)) + 1
+                if attempts[item.link] < 3:
+                    audit["details_deferred"].append(item.link)
+                    audit["deferred_items"].append(asdict(item))
+                else:
+                    manual_review[item.link] = {"url": item.link, "title": item.title, "warnings": list(warnings), "attempts": attempts[item.link], "note": "连续三轮未完整读取，转人工核验；该条没有被认定为无关项目"}
+            else:
+                attempts.pop(item.link, None)
+            if index % 20 == 0 or index == len(selected):
+                _emit_progress(progress, f"读取公告正文/附件：{index}/{len(selected)}")
+    audit["manual_review"] = list(manual_review.values())
+    audit["document_retry_counts"] = attempts
+    return [enriched.get(item_id(item), item) for item in items]
 
 
 def canonical_link(link: str) -> str:
@@ -1066,6 +1340,8 @@ def canonical_link(link: str) -> str:
 
 def item_id(item: AlertItem) -> str:
     stable_value = canonical_link(item.link) or f"{item.title}\n{item.source}"
+    if item.record_id:
+        stable_value += f"\n{item.record_id}"
     return hashlib.sha256(stable_value.encode("utf-8")).hexdigest()
 
 
@@ -1083,19 +1359,23 @@ def dedupe_items(items: Iterable[AlertItem]) -> list[AlertItem]:
 
 def relevance_score(item: AlertItem) -> int:
     title = item.title
-    text = f"{item.title}\n{item.summary}"
+    text = item_text(item)
     score = 0
     score += sum(5 for term in STRONG_TERMS if term in title)
     score += sum(2 for term in STRONG_TERMS if term not in title and term in text)
     score += sum(2 for term in OPPORTUNITY_TERMS if term in title)
     score += sum(2 for term in RESULT_TERMS if term in title)
     score += sum(1 for term in FINANCIAL_CONTEXT_TERMS if term in text)
-    score -= sum(3 for term in WEAK_CONTEXT_TERMS if term in text)
+    score -= sum(3 for term in WEAK_CONTEXT_TERMS if term in title)
     return score
 
 
+def item_text(item: AlertItem) -> str:
+    return f"{item.title}\n{item.summary}\n{item.body}"
+
+
 def has_target_terms(item: AlertItem) -> bool:
-    text = f"{item.title}\n{item.summary}"
+    text = item_text(item)
     return any(term in text for term in MIN_TARGET_TERMS)
 
 
@@ -1105,6 +1385,8 @@ def is_excluded_item(item: AlertItem) -> bool:
 
 
 def relevance_label(item: AlertItem) -> str:
+    if item.review_required:
+        return "待人工核实"
     score = relevance_score(item)
     if score >= 5:
         return "强相关"
@@ -1121,7 +1403,7 @@ def filter_items_by_relevance(items: Iterable[AlertItem], *, min_score: int) -> 
     return [
         item
         for item in sort_items_by_relevance(items)
-        if not is_excluded_item(item) and has_target_terms(item) and relevance_score(item) >= min_score
+        if not is_excluded_item(item) and (item.review_required or (has_target_terms(item) and relevance_score(item) >= min_score))
     ]
 
 
@@ -1139,11 +1421,13 @@ def notice_stage(item: AlertItem) -> str:
 
 
 def has_financial_context(item: AlertItem) -> bool:
-    text = f"{item.title}\n{item.summary}"
+    text = item_text(item)
     return any(term in text for term in FINANCIAL_CONTEXT_TERMS)
 
 
 def priority_bucket(item: AlertItem) -> str:
+    if item.review_required and not is_excluded_item(item):
+        return "待人工核实"
     if is_excluded_item(item) or not has_target_terms(item):
         return "其他"
 
@@ -1228,8 +1512,11 @@ def project_stage_summary(item: AlertItem, project_groups: dict[str, list[AlertI
 def load_state(path: Path) -> dict[str, object]:
     if not path.exists():
         return {"seen_ids": {}}
-    with path.open("r", encoding="utf-8") as file_obj:
-        state = json.load(file_obj)
+    try:
+        with path.open("r", encoding="utf-8") as file_obj:
+            state = json.load(file_obj)
+    except (OSError, ValueError) as exc:
+        raise BidAlertConfigError(f"Cannot read state file; retained for recovery: {path}") from exc
     if not isinstance(state, dict) or not isinstance(state.get("seen_ids"), dict):
         raise BidAlertConfigError(f"Invalid state file: {path}")
     return state
@@ -1248,7 +1535,30 @@ def select_new_items(items: Iterable[AlertItem], state: dict[str, object]) -> li
     seen_ids = state.get("seen_ids", {})
     if not isinstance(seen_ids, dict):
         raise BidAlertConfigError("Invalid state: seen_ids must be a dict")
-    return [item for item in items if item_id(item) not in seen_ids]
+    result = []
+    for item in items:
+        previous = seen_ids.get(item_id(item))
+        if previous is None:
+            result.append(item)
+            continue
+        if not isinstance(previous, dict):
+            raise BidAlertConfigError("Invalid state: seen entry must be a dict")
+        basis = "body" if item.body else "summary"
+        if previous.get("title") != item.title or (previous.get("content_basis") == basis and previous.get("content_hash") != item_content_hash(item)) or (previous.get("content_basis") == "summary" and basis == "body"):
+            result.append(item)
+    return result
+
+
+def item_content_hash(item: AlertItem) -> str:
+    text = re.sub(r"\s+", " ", f"{item.title}\n{item.body or item.summary}").strip()
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def restore_alert(row: dict) -> AlertItem:
+    required = ("title", "link", "summary", "published", "source", "keyword", "query")
+    if not isinstance(row, dict) or not all(isinstance(row.get(key), str) for key in required):
+        raise BidAlertConfigError("Invalid pending delivery record; retained for recovery")
+    return AlertItem(**{key: row[key] for key in required}, body=row.get("body", ""), matched_brokers=tuple(row.get("matched_brokers", [])), review_required=bool(row.get("review_required", False)), record_id=row.get("record_id", ""))
 
 
 def mark_seen(state: dict[str, object], items: Iterable[AlertItem], *, max_seen: int = 5000) -> None:
@@ -1257,13 +1567,18 @@ def mark_seen(state: dict[str, object], items: Iterable[AlertItem], *, max_seen:
         raise BidAlertConfigError("Invalid state: seen_ids must be a dict")
     now = datetime.now(timezone.utc).isoformat()
     for item in items:
+        previous = seen_ids.get(item_id(item), {})
         seen_ids[item_id(item)] = {
             "title": item.title,
             "link": canonical_link(item.link),
             "keyword": item.keyword,
             "stage": notice_stage(item),
             "project_key": project_key(item),
-            "first_seen_at": now,
+            "first_seen_at": previous.get("first_seen_at", now) if isinstance(previous, dict) else now,
+            "last_seen_at": now,
+            "content_hash": item_content_hash(item),
+            "content_basis": "body" if item.body else "summary",
+            "review_required": item.review_required,
         }
     if len(seen_ids) > max_seen:
         sorted_items = sorted(
@@ -1300,12 +1615,13 @@ def render_email_body(
     *,
     total_found: int | None = None,
     eligible_count: int | None = None,
+    scan_report: dict | None = None,
 ) -> str:
     lines = [
         "以下是两层免费监控发现的专家相关新公告。",
         "",
         "说明：第一层来自公开搜索 RSS 和源站公开列表页；第二层会把国家平台聚合页的标题和 UUID 用于补找公开源站或镜像链接。",
-        "本提醒不直接抓取付费或禁止自动抓取的网站页面，不绕过验证码、WAF 或付费订阅，只保存可公开访问的标题、来源和链接，结果可能存在延迟。",
+        "本提醒不直接抓取付费或禁止自动抓取的网站页面，不绕过验证码、WAF 或付费订阅。正文和可读附件用于识别项目；结果可能存在延迟。",
         "",
     ]
     if total_found is not None or eligible_count is not None:
@@ -1319,12 +1635,29 @@ def render_email_body(
                 "",
             ]
         )
+    if scan_report is not None:
+        queries = scan_report.get("queries", [])
+        sources = scan_report.get("sources", [])
+        details = scan_report.get("details", [])
+        lines.extend([
+            "## 覆盖与缺口",
+            f"- 名录逐家检索：{scan_report.get('broker_count', 0)} 家；配置官方采购入口：{scan_report.get('brokers_with_configured_sources', 0)} 家（配置不代表本轮抓取成功）",
+            f"- 搜索成功：{sum(entry.get('status') == 'ok' for entry in queries)}/{len(queries)}；源站异常或未识别公告列表：{sum(entry.get('status') != 'ok' for entry in sources)} 页",
+            f"- 正文/附件待核验：{sum(bool(entry.get('warnings')) for entry in details)} 条；待续读正文：{len(scan_report.get('details_deferred', []))} 条",
+            f"- 连续失败转人工核验：{len(scan_report.get('manual_review', []))} 条（明细保留在附件，不按无关项目丢弃）",
+            "- 逐家检索、来源失败、待核验及覆盖限制详见附件 coverage-report.json。搜索成功不等于全部项目已捕获。",
+            "",
+        ])
     if not items:
+        status_note = "本次扫描没有发现新的专家咨询/专家网络相关目标公告。系统已正常运行；若后续发现新公告，会在下一次邮件中列出。"
+        if scan_report is not None:
+            status_note = "本轮已读取数据中未发现新增符合规则或待核验的项目。"
+            status_note += "本轮存在来源或附件检查缺口，请查看覆盖报告；不能据此判断没有新项目。" if scan_report.get("partial") else "已配置检查完成；尚未接入的渠道和未被搜索收录的公告仍可能遗漏。"
         lines.extend(
             [
                 "## 本次未发现新目标",
                 "",
-                "本次扫描没有发现新的专家咨询/专家网络相关目标公告。系统已正常运行；若后续发现新公告，会在下一次邮件中列出。",
+                status_note,
                 "",
             ]
         )
@@ -1349,6 +1682,16 @@ def render_email_body(
                 ]
             )
             stage_summary = project_stage_summary(item, project_groups)
+            if item.matched_brokers:
+                lines.append(f"   涉及券商：{'、'.join(item.matched_brokers)}")
+            if item.review_required:
+                lines.append("   核验提示：表述较宽或正文/附件读取不完整，保留候选供人工确认。")
+            if item.body:
+                for term in MIN_TARGET_TERMS:
+                    offset = item.body.find(term)
+                    if offset >= 0:
+                        lines.append(f"   正文依据：{item.body[max(0, offset - 40):offset + 150]}")
+                        break
             if stage_summary:
                 lines.append(f"   {stage_summary}")
             if item.summary:
@@ -1426,6 +1769,7 @@ def send_email(
     *,
     total_found: int | None = None,
     eligible_count: int | None = None,
+    scan_report: dict | None = None,
     progress: Callable[[str], None] | None = None,
     smtp_attempts: int = 3,
     curl_retries: int = 2,
@@ -1438,7 +1782,9 @@ def send_email(
     message["From"] = settings.sender_email
     message["To"] = settings.recipient_email
     message["Subject"] = f"{settings.subject_prefix}：{len(items)} 条专家相关新公告"
-    message.set_content(render_email_body(items, total_found=total_found, eligible_count=eligible_count))
+    message.set_content(render_email_body(items, total_found=total_found, eligible_count=eligible_count, scan_report=scan_report))
+    if scan_report is not None:
+        message.add_attachment(json.dumps(scan_report, ensure_ascii=False, indent=2).encode("utf-8"), maintype="application", subtype="json", filename="coverage-report.json")
     _send_message(
         settings,
         message,
@@ -1515,8 +1861,17 @@ def run_alerts(
     _emit_progress(progress, f"抓取完成，原始结果 {len(items)} 条，开始筛选...")
     eligible_items = filter_items_by_relevance(items, min_score=settings.min_relevance_score)
     state = load_state(settings.state_file)
+    pending_delivery = state.get("pending_delivery", [])
+    if not isinstance(pending_delivery, list):
+        raise BidAlertConfigError("Invalid pending delivery queue")
+    eligible_items = dedupe_items(eligible_items + [restore_alert(row) for row in pending_delivery])
     new_items = select_new_items(eligible_items, state)
-    email_items = sort_items_by_relevance(new_items)[: settings.max_email_items]
+    email_items = sort_items_by_relevance(new_items)
+    report = None
+    if settings.audit_report_file is not None and settings.audit_report_file.exists():
+        report = json.loads(settings.audit_report_file.read_text(encoding="utf-8"))
+        report.update({"eligible_items": len(eligible_items), "new_or_updated_items": len(email_items), "review_candidates": sum(item.review_required for item in eligible_items)})
+        save_state(settings.audit_report_file, report)
 
     if prime:
         mark_seen(state, eligible_items)
@@ -1526,18 +1881,25 @@ def run_alerts(
     if dry_run:
         return (len(items), len(email_items))
 
-    _emit_progress(progress, f"准备发送运行摘要邮件，新增公告 {len(email_items)} 条...")
-    send_email(
-        settings,
-        email_items,
-        total_found=len(items),
-        eligible_count=len(eligible_items),
-        progress=progress,
-    )
-    if email_items:
-        mark_seen(state, email_items)
-    elif eligible_items:
-        mark_seen(state, eligible_items)
+    _emit_progress(progress, f"筛选后 {len(eligible_items)} 条；新增或变更 {len(email_items)} 条；待人工核验 {sum(item.review_required for item in eligible_items)} 条。")
+    batch_size = max(1, settings.max_email_items)
+    batches = [email_items[offset:offset + batch_size] for offset in range(0, len(email_items), batch_size)] or [[]]
+    state["pending_delivery"] = [asdict(item) for item in email_items]
+    save_state(settings.state_file, state)
+    for index, batch in enumerate(batches, start=1):
+        _emit_progress(progress, f"发送摘要：第 {index}/{len(batches)} 批，{len(batch)} 条。")
+        report_args = {"scan_report": report} if report is not None else {}
+        send_email(settings, batch, total_found=len(items), eligible_count=len(eligible_items), progress=progress, **report_args)
+        mark_seen(state, batch)
+        sent_ids = {item_id(item) for item in batch}
+        state["pending_delivery"] = [row for row in state["pending_delivery"] if item_id(restore_alert(row)) not in sent_ids]
+        save_state(settings.state_file, state)
+    # Legacy URL-only records receive a baseline without resending historical items.
+    already_seen = [item for item in eligible_items if item_id(item) in state.get("seen_ids", {})]
+    for item in already_seen:
+        previous = state["seen_ids"][item_id(item)]
+        if item.body or previous.get("content_basis") != "body":
+            mark_seen(state, [item])
     save_state(settings.state_file, state)
     return (len(items), len(email_items))
 
@@ -1559,11 +1921,13 @@ def send_test_email(settings: BidAlertSettings, *, progress: Callable[[str], Non
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Free bid announcement email alerts from public search RSS feeds")
-    parser.add_argument("--dry-run", action="store_true", help="Fetch and print counts without sending or updating state")
+    parser.add_argument("--dry-run", action="store_true", help="Fetch and write a coverage report without sending or changing sent-alert state")
     parser.add_argument("--prime", action="store_true", help="Record current results as seen without sending email")
     parser.add_argument("--test-email", action="store_true", help="Send one local test email without fetching search results")
     parser.add_argument("--verbose", action="store_true", help="Print fetch and email progress to stderr")
     parser.add_argument("--state-file", help="Override BID_ALERT_STATE_FILE")
+    parser.add_argument("--report-file", help="Override coverage report output path")
+    parser.add_argument("--coverage-plan", action="store_true", help="Write the broker/query coverage plan without network requests or email")
     return parser
 
 
@@ -1575,6 +1939,23 @@ def main(argv: list[str] | None = None) -> int:
         settings = load_settings()
         if args.state_file:
             settings = replace(settings, state_file=Path(args.state_file))
+        if args.report_file:
+            settings = replace(settings, audit_report_file=Path(args.report_file))
+        if args.coverage_plan:
+            brokers = load_brokers(settings.broker_registry_file)
+            queries = build_queries(settings)
+            plan = {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "registry_file": str(settings.broker_registry_file),
+                "broker_count": len(brokers), "query_count": len(queries),
+                "brokers_with_configured_sources": sum(bool(broker.procurement_urls) for broker in brokers),
+                "note": "这是离线任务计划，不代表网络访问成功或公告已完整捕获。",
+                "brokers": [{"name": broker.name, "aliases": list(broker.aliases), "queries": [query for label, _, query in queries if label == f"券商覆盖:{broker.name}"], "procurement_urls": list(broker.procurement_urls), "source_status": "configured_not_guaranteed" if broker.procurement_urls else "pending_source_verification"} for broker in brokers],
+            }
+            plan_path = Path(args.report_file) if args.report_file else settings.state_file.parent / "coverage-plan.json"
+            save_state(plan_path, plan)
+            print(f"Coverage plan: {len(brokers)} institutions, {len(queries)} queries; written to {plan_path}. No scan or email performed.")
+            return 0
         if args.test_email:
             send_test_email(settings, progress=lambda message: print(message, file=sys.stderr, flush=True))
             print("Sent bid alert test email.")

@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-10-29",
+  "checked_timezone": "Asia/Shanghai",
+  "registry_reference": "data/bid-alerts/brokers.json",
+  "verification_note": "来源官方性核实与单次访问观测，不等于全国覆盖、每天可用、历史完整或不漏报；configured_not_guaranteed仅表示已配置。",
+  "scanner_user_agent": "Mozilla/5.0 (compatible; bid-alerts/0.1; +local-monitor)",
+  "sources": [
+    {
+      "id": "citics-public-procurement",
+      "broker_names": [
+        "中信证券股份有限公司"
+      ],
+      "title": "中信证券官网采购项目结果公示（同时发布供应商征集）",
+      "official_provenance_url": "https://www.cs.ecitic.com/newsite/xxgs/cgxmjg/202607/t20260710_1214288.html",
+      "urls": [
+        "https://www.citics.com/newsite/xxgs/cgxmjg/",
+        "https://www.citics.com/newsite/xxgs/cgxmjg/index_1.html"
+      ],
+      "source_type": "html_list",
+      "coverage_status": "configured_not_guaranteed",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://www.citics.com/newsite/xxgs/cgxmjg/",
+          "method": "HTTP GET with scanner User-Agent",
+          "http_status": 200,
+          "observation": "HTML包含公开公告标题、日期和详情链接；第二页已通过网页读取核对。"
+        }
+      ],
+      "limitations": [
+        "仅配置已核实列表和第二页，历史翻页与完整召回仍需每日运行核验。"
+      ]
+    },
+    {
+      "id": "gf-public-procurement",
+      "broker_names": [
+        "广发证券股份有限公司"
+      ],
+      "title": "广发证券采购平台",
+      "official_provenance_url": "https://gfjc.gf.com.cn/gyszjgg/10955.jhtml",
+      "urls": [
+        "https://gfjc.gf.com.cn/gyszjgg/index.jhtml",
+        "https://gfjc.gf.com.cn/cggg/index.jhtml",
+        "https://gfjc.gf.com.cn/jggg/index.jhtml"
+      ],
+      "source_type": "html_list",
+      "coverage_status": "configured_not_guaranteed",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://gfjc.gf.com.cn/gyszjgg/index.jhtml",
+          "method": "HTTP GET with scanner User-Agent",
+          "http_status": 200,
+          "observation": "可解析10条供应商征集；网页显示1054条/106页。已观察下一页真实链接为index_2.jhtml。"
+        },
+        {
+          "url": "https://gfjc.gf.com.cn/cggg/index.jhtml",
+          "method": "web page read",
+          "observation": "页面明确显示0条记录；空列表本身不等于故障。"
+        },
+        {
+          "url": "https://gfjc.gf.com.cn/jggg/index.jhtml",
+          "method": "web page read",
+          "observation": "页面明确显示0条记录；空列表本身不等于故障。"
+        }
+      ],
+      "limitations": [
+        "默认Python User-Agent曾返回403，改为现有扫描器User-Agent后返回200；仍需持续记录HTTP阻断和重试结果。",
+        "正式投标邀请可能需要供应商资格和注册，仅公开征集不等于获得邀请。"
+      ]
+    },
+    {
+      "id": "boci-public-procurement",
+      "broker_names": [
+        "中银国际证券股份有限公司"
+      ],
+      "title": "中银证券官网采购公告",
+      "official_provenance_url": "https://www.bocichina.com/main/investorrelations/newscenter/purchaseann/index.shtml",
+      "urls": [
+        "https://www.bocichina.com/main/investorrelations/newscenter/purchaseann/index.shtml"
+      ],
+      "source_type": "html_list",
+      "coverage_status": "configured_not_guaranteed",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://www.bocichina.com/main/investorrelations/newscenter/purchaseann/index.shtml",
+          "method": "HTTP GET with scanner User-Agent",
+          "http_status": 200,
+          "observation": "HTML包含10条采购邀请公告的标题、日期和详情链接。"
+        }
+      ],
+      "limitations": [
+        "默认Python User-Agent曾返回405，现有扫描器User-Agent返回200；访问可用性须逐次检查。"
+      ]
+    },
+    {
+      "id": "cnpsec-group-procurement",
+      "broker_names": [
+        "中邮证券有限责任公司"
+      ],
+      "title": "中国邮政集团官网中邮证券采购栏目",
+      "official_provenance_url": "https://www.chinapost.com.cn/cn/report/2401/50455-1.htm",
+      "urls": [
+        "https://www.chinapost.com.cn/cn/category/1813/137352-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137353-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137350-1.htm",
+        "https://www.chinapost.com.cn/cn/category/2405/20456-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137351-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137348-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/137347-1.htm",
+        "https://www.chinapost.com.cn/cn/category/2507/12225-1.htm",
+        "https://www.chinapost.com.cn/cn/category/1813/922419-1.htm"
+      ],
+      "source_type": "html_list",
+      "coverage_status": "configured_not_guaranteed",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://www.chinapost.com.cn/cn/folder/1813/137318-1.htm",
+          "method": "HTTP GET and read publicly referenced script",
+          "http_status": 200,
+          "observation": "旧栏目页脚本明确重定向至/cn/category/1813/137352-1.htm。"
+        },
+        {
+          "url": "https://www.chinapost.com.cn/cn/category/1813/137352-1.htm",
+          "method": "HTTP GET with scanner User-Agent and HTMLParser",
+          "http_status": 200,
+          "observation": "解析到20条中邮证券招标公告；其他8类URL及真实下一页-2.htm均来自该页官方导航锚点，未逐类独立访问。"
+        }
+      ],
+      "categories": {
+        "招标公告": "https://www.chinapost.com.cn/cn/category/1813/137352-1.htm",
+        "资格预审公告": "https://www.chinapost.com.cn/cn/category/1813/137353-1.htm",
+        "谈判采购公告": "https://www.chinapost.com.cn/cn/category/1813/137350-1.htm",
+        "询比采购公告": "https://www.chinapost.com.cn/cn/category/2405/20456-1.htm",
+        "竞价采购公告": "https://www.chinapost.com.cn/cn/category/1813/137351-1.htm",
+        "中标候选人公示": "https://www.chinapost.com.cn/cn/category/1813/137348-1.htm",
+        "直接采购采前公示": "https://www.chinapost.com.cn/cn/category/1813/137347-1.htm",
+        "采购征求意见公告": "https://www.chinapost.com.cn/cn/category/2507/12225-1.htm",
+        "其他": "https://www.chinapost.com.cn/cn/category/1813/922419-1.htm"
+      },
+      "limitations": [
+        "页面存在不加引号的href，解析器需支持标准HTML无引号属性。",
+        "其余分类通过官方导航核实存在，不代表全部分类当日均有公告或可成功抓取。"
+      ]
+    },
+    {
+      "id": "galaxy-public-procurement-api",
+      "broker_names": [
+        "中国银河证券股份有限公司"
+      ],
+      "title": "中国银河证券采购结果及采购需求公开接口",
+      "official_provenance_url": "https://www.chinastock.com.cn/newsite/online/purchaseAnnc.html",
+      "official_script_url": "https://www.chinastock.com.cn/newsite/js/purchaseAnnc.52feeb3d.min.js",
+      "urls": [
+        "https://www.chinastock.com.cn/website2020/announcement/queryPurchaseResultList?pageNo=1&pageSize=10",
+        "https://www.chinastock.com.cn/website2020/announcement/queryPurchaseReqList?pageNo=1&pageSize=10"
+      ],
+      "source_type": "public_json_api",
+      "coverage_status": "configured_not_guaranteed",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://www.chinastock.com.cn/website2020/announcement/queryPurchaseResultList?pageNo=1&pageSize=10",
+          "method": "HTTP GET with scanner User-Agent",
+          "http_status": 200,
+          "application_status": "ret.error=0",
+          "observation": "data.list返回10条，data.pages为12；记录字段包含id、projectNo、projectName、showTime、projectType、supplier1至supplier5。"
+        },
+        {
+          "url": "https://www.chinastock.com.cn/website2020/announcement/queryPurchaseReqList?pageNo=1&pageSize=10",
+          "method": "HTTP GET with scanner User-Agent",
+          "http_status": 200,
+          "application_status": "ret.error=0",
+          "observation": "data.list本次为空，data.pages为0；成功空列表不等于抓取失败。"
+        }
+      ],
+      "request_definition": {
+        "method": "GET",
+        "page_parameter": "pageNo",
+        "size_parameter": "pageSize",
+        "items_path": "data.list",
+        "pages_path": "data.pages",
+        "success_path": "ret.error",
+        "success_value": 0
+      },
+      "record_identity": "接口真实id，按结果/需求类型命名空间区分。",
+      "human_list_url": "https://www.chinastock.com.cn/newsite/online/purchaseAnnc.html",
+      "limitations": [
+        "官网结果列表明确将条目URL设为javascript:void(0)，未核实每条结果的详情入口；使用真实record ID去重并链接官方列表，不能编造详情URL。",
+        "需求页JS构造包含两个问号的详情URL，本次无需求记录可验证，暂不将该链接视为已验证详情入口。",
+        "需要JSON适配器；仅抓HTML空壳无法获取上述列表。"
+      ]
+    },
+    {
+      "id": "ctsec-public-procurement",
+      "broker_names": [
+        "财通证券股份有限公司"
+      ],
+      "title": "财通证券官网招标信息",
+      "official_provenance_url": "https://www.ctsec.com/bidding",
+      "urls": [
+        "https://www.ctsec.com/bidding",
+        "https://www.ctsec.com/bidding/list/1",
+        "https://www.ctsec.com/bidding/list/2",
+        "https://www.ctsec.com/bidding/list/3"
+      ],
+      "source_type": "html_list",
+      "coverage_status": "configured_not_guaranteed",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://www.ctsec.com/bidding",
+          "method": "web page read",
+          "observation": "官网可见招标公告、中标公示、拟单一来源采购三栏及各栏查看更多入口。"
+        }
+      ],
+      "limitations": [
+        "本次通过公开官网页面核实栏目和公司归属；既有三类列表配置仍需在实际运行中逐来源核验。"
+      ]
+    },
+    {
+      "id": "sdic-public-procurement",
+      "broker_names": [
+        "国投证券资产管理有限公司"
+      ],
+      "title": "国投集团电子采购平台（集团共用入口）",
+      "official_provenance_url": "https://www.sdicc.com.cn/cgxx/ggDetail?gcGuid=b32e0b72-4646-4e98-ba2b-5f3660324cbf&ggGuid=ab9abdea-3c88-498c-9d5f-6887a3284aa8",
+      "urls": [
+        "https://www.sdicc.com.cn/"
+      ],
+      "source_type": "group_html_portal",
+      "coverage_status": "configured_not_guaranteed",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://www.sdicc.com.cn/cgxx/ggDetail?gcGuid=b32e0b72-4646-4e98-ba2b-5f3660324cbf&ggGuid=ab9abdea-3c88-498c-9d5f-6887a3284aa8",
+          "method": "web page read",
+          "observation": "2025-05-30专家咨询服务采购入围项目公告明确招标人为国投证券资产管理有限公司。"
+        }
+      ],
+      "limitations": [
+        "集团共用门户，不是资管公司专属采购列表；配入该URL不证明完整覆盖国投证券及集团全部项目。"
+      ]
+    },
+    {
+      "id": "xyzq-public-procurement-dynamic",
+      "broker_names": [
+        "兴业证券股份有限公司"
+      ],
+      "title": "兴业证券兴易采",
+      "official_provenance_url": "https://www.xyzq.com.cn/xysec/aboutus/11197",
+      "urls": [
+        "https://oagw.xyzq.cn:10800/cggl/cms/default/webfile/gkcg/index.html",
+        "https://oagw.xyzq.cn:10800/cggl/cms/default/webfile/gyszj/index.html",
+        "https://oagw.xyzq.cn:10800/cggl/cms/default/webfile/cggs/index.html",
+        "https://oagw.xyzq.cn:10800/cggl/cms/default/webfile/dygs/index.html"
+      ],
+      "source_type": "dynamic_html",
+      "coverage_status": "requires_adapter",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://www.xyzq.com.cn/xysec/aboutus/11197",
+          "method": "HTTP GET",
+          "http_status": 200,
+          "observation": "官方采购项目菜单明确链接https://oagw.xyzq.cn:10800/cggl。"
+        },
+        {
+          "url": "https://oagw.xyzq.cn:10800/cggl",
+          "method": "HTTP GET with scanner User-Agent",
+          "http_status": 200,
+          "observation": "标题为兴业证券兴易采，导航提供公开采购、单一来源、供应商征集、采购结果列表。"
+        },
+        {
+          "url": "https://oagw.xyzq.cn:10800/cggl/cms/default/webfile/gkcg/index.html",
+          "method": "HTTP GET with scanner User-Agent",
+          "http_status": 200,
+          "observation": "列表HTML为空壳，公告由公开引用的bidding.js动态加载。"
+        }
+      ],
+      "limitations": [
+        "未实现其动态列表适配，因此未加入brokers.json的已配置procurement_urls。"
+      ]
+    },
+    {
+      "id": "cjsc-public-procurement-blocked",
+      "broker_names": [
+        "长江证券股份有限公司"
+      ],
+      "title": "长江证券官网招标公告",
+      "official_provenance_url": "https://www.95579.com/main/a/20260903/39441.shtml",
+      "urls": [
+        "https://www.95579.com/main/aboutus/tenderannouncement/index.shtml"
+      ],
+      "source_type": "html_list",
+      "coverage_status": "access_blocked_requires_verification",
+      "checked_on": "2026-10-29",
+      "access_checks": [
+        {
+          "url": "https://www.95579.com/main/aboutus/tenderannouncement/index.shtml",
+          "method": "HTTP GET",
+          "http_status": 403,
+          "observation": "搜索缓存可见历史公告，但本机本次HTTP访问返回阻断页；不能把搜索缓存当成本机抓取成功。"
+        }
+      ],
+      "limitations": [
+        "未加入已配置直抓入口，需确认可用访问方式或其他官方采购渠道。"
+      ]
+    }
+  ],
+  "alias_evidence": [
+    {
+      "broker_name": "中国国际金融股份有限公司",
+      "aliases": [
+        "中金公司",
+        "CICC"
+      ],
+      "source_url": "https://www.cicc.com/upload/file/2025/10/31/10f03f11-42f9-474d-a862-6f6159df0820.pdf",
+      "publisher": "中国国际金融股份有限公司",
+      "checked_on": "2026-10-29",
+      "basis": "公司章程第三条明确注册名称、中文简称中金公司及英文简称CICC。"
+    },
+    {
+      "broker_name": "国泰海通证券股份有限公司",
+      "aliases": [
+        "国泰海通",
+        "国泰君安证券",
+        "国泰君安证券股份有限公司"
+      ],
+      "source_url": "https://www.sse.com.cn/disclosure/announcement/general/c/c_20250407_10776862.shtml",
+      "publisher": "上海证券交易所",
+      "checked_on": "2026-10-29",
+      "basis": "上交所2025-04-07公告确认国泰君安证券会员名称变更为国泰海通证券；旧名称仅用于历史和更名过渡检索。"
+    },
+    {
+      "broker_name": "国泰海通证券股份有限公司",
+      "aliases": [
+        "海通证券",
+        "海通证券股份有限公司"
+      ],
+      "source_url": "https://static.sse.com.cn/disclosure/bond/announcement/company/c/new/2025-05-20/143301_20250520_HOS2.pdf",
+      "publisher": "国泰海通证券股份有限公司（上交所披露）",
+      "checked_on": "2026-10-29",
+      "basis": "发行人公告记载2025-03-14吸收合并交割后承接海通证券全部业务、合同等；这些是被吸收合并主体的历史检索别名，不表示其仍是独立存续券商。"
+    }
+  ]
+}

@@ -4,8 +4,8 @@ on:
   schedule:
     # 09:17 Asia/Shanghai = 01:17 UTC. Avoid the busy top-of-hour scheduler window.
     - cron: "17 1 * * *"
-    # 09:47 Asia/Shanghai = 01:47 UTC. Backup run in case GitHub drops the first schedule.
-    - cron: "47 1 * * *"
+    # 17:47 Asia/Shanghai = 09:47 UTC. Leave room for the broader daily scan.
+    - cron: "47 9 * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -29,22 +29,30 @@ permissions:
 jobs:
   bid-alerts:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
 
     env:
       TZ: Asia/Shanghai
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'scan' }}
       BID_ALERT_KEYWORDS: "专家咨询采购,专家咨询采购项目,专家咨询服务,专家咨询服务采购,专家咨询服务供应商入围采购,专家咨询服务招标,专家咨询服务选聘,行业专家咨询服务采购,外部专家咨询服务,专家访谈咨询服务,专家服务选型,专家服务供应商入围,专家咨询库,咨询中介机构"
-      BID_ALERT_SITE_FILTERS: "ctbpsp.com,cebpubservice.com,sdicc.com.cn,gy.chinamae.com,ctsec.com,stbid.stdzzb.com,bbda.com,epp.sinomach.com.cn,jzcg.chinagoldgroup.com,supplier.gtht.com,ec.chng.com.cn,bidding.ec.chng.com.cn,yuxinec.com,sntba.com,jszbtb.com"
+      BID_ALERT_SITE_FILTERS: "ctbpsp.com,cebpubservice.com,sdicc.com.cn,gy.chinamae.com,ctsec.com,eps.qdgxjt.com,stbid.stdzzb.com,bbda.com,epp.sinomach.com.cn,jzcg.chinagoldgroup.com,supplier.gtht.com,ec.chng.com.cn,bidding.ec.chng.com.cn,yuxinec.com,sntba.com,jszbtb.com"
       BID_ALERT_EXTRA_QUERIES: "专家咨询采购项目;专家咨询采购 招标公告;专家咨询服务采购 入围;专家咨询服务采购 候选人公示;专家咨询服务采购 结果公告;专家咨询服务采购 更正公告;专家咨询服务框架协议;专家咨询服务供应商;专家咨询服务供应商入围采购;专家咨询服务招标;专家咨询服务选聘;外部专家咨询服务;外部专家咨询服务采购;外部专家咨询服务选聘;行业专家咨询服务采购;专家访谈咨询服务;专家服务选型;专家服务供应商入围;证券 专家咨询服务采购;证券 专家咨询服务供应商;证券 外部专家咨询服务;股权投资 专家咨询服务采购;私募基金 专家咨询服务;私募基金 专家访谈咨询服务;基金管理 专家咨询服务"
-      BID_ALERT_SOURCE_URLS: "https://www.sdicc.com.cn/,https://gy.chinamae.com/purchases-latest,https://gy.chinamae.com/purchases/type/1,https://gy.chinamae.com/purchases/type/3,https://www.ctsec.com/bidding,https://www.ctsec.com/bidding/list/1,https://www.ctsec.com/bidding/list/2,https://www.ctsec.com/bidding/list/3"
+      BID_ALERT_SOURCE_URLS: "https://www.sdicc.com.cn/,https://gy.chinamae.com/purchases-latest,https://gy.chinamae.com/purchases/type/1,https://gy.chinamae.com/purchases/type/3,https://www.ctsec.com/bidding,https://www.ctsec.com/bidding/list/1,https://www.ctsec.com/bidding/list/2,https://www.ctsec.com/bidding/list/3,https://eps.qdgxjt.com/cms/channel/xmgg1qb/index.htm,https://eps.qdgxjt.com/cms/channel/xmgg1qb/index.htm?pageNo=2,https://eps.qdgxjt.com/cms/channel/xmgg1qb/index.htm?pageNo=3,https://eps.qdgxjt.com/cms/channel/xmgg2qb/index.htm,https://eps.qdgxjt.com/cms/channel/xmgg2qb/index.htm?pageNo=2,https://eps.qdgxjt.com/cms/channel/xmgg2qb/index.htm?pageNo=3,https://eps.qdgxjt.com/cms/channel/xmgg3qb/index.htm,https://eps.qdgxjt.com/cms/channel/xmgg3qb/index.htm?pageNo=2,https://eps.qdgxjt.com/cms/channel/xmgg3qb/index.htm?pageNo=3,https://eps.qdgxjt.com/cms/channel/xmgg4qb/index.htm,https://eps.qdgxjt.com/cms/channel/xmgg4qb/index.htm?pageNo=2,https://eps.qdgxjt.com/cms/channel/xmgg4qb/index.htm?pageNo=3"
       BID_ALERT_QUERY_SUFFIX: "after:2025-01-01"
       BID_ALERT_BROAD_SEARCH: "true"
       BID_ALERT_CTBPSP_MIRROR_SEARCH: "true"
       BID_ALERT_CTBPSP_MIRROR_SITE_FILTERS: "sdicc.com.cn,gy.chinamae.com,stbid.stdzzb.com,ctsec.com,bbda.com,epp.sinomach.com.cn,jzcg.chinagoldgroup.com,supplier.gtht.com,ec.chng.com.cn,bidding.ec.chng.com.cn,yuxinec.com,sntba.com,jszbtb.com"
       BID_ALERT_CTBPSP_MIRROR_MAX_ITEMS: "3"
       BID_ALERT_STATE_FILE: "work/bid-alerts/state.json"
-      BID_ALERT_MAX_RESULTS_PER_QUERY: "5"
+      BID_ALERT_MAX_RESULTS_PER_QUERY: "50"
+      BID_ALERT_BROKER_COVERAGE: "true"
+      BID_ALERT_BROKER_REGISTRY: "data/bid-alerts/brokers.json"
+      BID_ALERT_FETCH_DETAILS: "true"
+      BID_ALERT_FETCH_WORKERS: "4"
+      BID_ALERT_SOURCE_MAX_PAGES: "5"
+      BID_ALERT_MAX_DETAIL_PAGES: "500"
+      BID_ALERT_SCAN_BUDGET_SECONDS: "3600"
+      BID_ALERT_REPORT_FILE: "work/bid-alerts/coverage-report.json"
       BID_ALERT_MIN_RELEVANCE_SCORE: "5"
       BID_ALERT_MAX_EMAIL_ITEMS: "50"
       BID_ALERT_REQUEST_TIMEOUT_SECONDS: "20"
@@ -81,6 +89,9 @@ jobs:
 
       - name: Ensure state directory exists
         run: mkdir -p work/bid-alerts
+
+      - name: Build broker coverage plan
+        run: python -m src.bid_alerts --coverage-plan --report-file work/bid-alerts/coverage-plan.json
 
       - name: Check email secrets
         if: ${{ env.RUN_MODE == 'scan' || env.RUN_MODE == 'test-email' }}
@@ -124,8 +135,19 @@ jobs:
           esac
 
       - name: Save alert state
-        if: ${{ success() && (env.RUN_MODE == 'scan' || env.RUN_MODE == 'prime') }}
+        if: ${{ always() && (env.RUN_MODE == 'scan' || env.RUN_MODE == 'prime') }}
         uses: actions/cache/save@v4
         with:
           path: work/bid-alerts
           key: bid-alert-state-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Upload coverage report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: bid-alert-coverage-${{ github.run_id }}
+          path: |
+            work/bid-alerts/coverage-plan.json
+            work/bid-alerts/coverage-report.json
+          if-no-files-found: warn
+          retention-days: 30
