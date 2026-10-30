@@ -6,9 +6,6 @@ on:
     - cron: "17 1 * * *"
     # 17:47 Asia/Shanghai = 09:47 UTC. Leave room for the broader daily scan.
     - cron: "47 9 * * *"
-    # Temporary no-email schedule checks on 2026-10-30; remove after verification.
-    - cron: "24 6 30 10 *"
-    - cron: "34 6 30 10 *"
   workflow_dispatch:
     inputs:
       mode:
@@ -23,38 +20,16 @@ on:
           - prime
 
 concurrency:
-  group: ${{ (github.event_name == 'schedule' && (github.event.schedule == '24 6 30 10 *' || github.event.schedule == '34 6 30 10 *')) && 'bid-alert-schedule-probe-20261030' || 'bid-announcement-alerts' }}
+  group: bid-announcement-alerts
   cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  schedule-probe:
-    if: ${{ github.event_name == 'schedule' && (github.event.schedule == '24 6 30 10 *' || github.event.schedule == '34 6 30 10 *') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions: {}
-    steps:
-      - name: Record scheduled trigger without scanning or email
-        env:
-          PROBE_EVENT: ${{ github.event_name }}
-          PROBE_CRON: ${{ github.event.schedule }}
-          PROBE_ACTOR: ${{ github.actor }}
-          PROBE_SHA: ${{ github.sha }}
-          PROBE_RUN_ID: ${{ github.run_id }}
-          PROBE_REF: ${{ github.ref }}
-        run: |
-          set -euo pipefail
-          test "$PROBE_EVENT" = "schedule"
-          printf 'probe_event=%s\nprobe_cron=%s\nprobe_actor=%s\nprobe_sha=%s\nprobe_run_id=%s\nprobe_ref=%s\n' "$PROBE_EVENT" "$PROBE_CRON" "$PROBE_ACTOR" "$PROBE_SHA" "$PROBE_RUN_ID" "$PROBE_REF"
-          date -u +"probe_observed_at=%Y-%m-%dT%H:%M:%SZ"
-          {
-            printf '## Schedule trigger verification\n\n'
-            printf 'Event: `%s`\n\nCron: `%s`\n\nActor: `%s`\n\nCommit: `%s`\n\nRun ID: `%s`\n\n' "$PROBE_EVENT" "$PROBE_CRON" "$PROBE_ACTOR" "$PROBE_SHA" "$PROBE_RUN_ID"
-            printf 'This job does not scan announcements, load email secrets, or send email.\n'
-          } >> "$GITHUB_STEP_SUMMARY"
   bid-alerts:
+    # Keep the scheduled-event allowlist aligned with the two daily cron entries.
+    # Stale diagnostic schedule events must never send announcement emails.
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && (github.event.schedule == '17 1 * * *' || github.event.schedule == '47 9 * * *')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
