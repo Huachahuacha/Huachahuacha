@@ -1,5 +1,6 @@
 from collections import Counter
-from dataclasses import replace
+from dataclasses import asdict, replace
+from datetime import datetime, timezone
 from html import escape
 import json
 from pathlib import Path
@@ -12,6 +13,7 @@ from src.bid_alerts import (
     AlertItem,
     BidAlertFetchError,
     BidAlertSettings,
+    SHANGHAI_TIME,
     build_queries,
     collect_alert_items,
     dedupe_items,
@@ -86,7 +88,8 @@ def registry_file(tmp_path: Path) -> Path:
 
 
 def item(title: str = "广发证券专家咨询服务采购公告", *, index: int = 1, body: str = "", summary: str = "") -> AlertItem:
-    return AlertItem(title, f"https://broker.example/notices/{index}", summary, "2026-10-29", "broker.example", "专家咨询", "q", body=body)
+    today = datetime.now(SHANGHAI_TIME).date().isoformat()
+    return AlertItem(title, f"https://broker.example/notices/{index}", summary, today, "broker.example", "专家咨询", "q", body=body, notice_published=today)
 
 
 def rss(items: list[AlertItem]) -> str:
@@ -337,6 +340,70 @@ def test_failed_email_batch_is_delivered_next_run_even_if_search_returns_nothing
     assert set(final_state["seen_ids"]) == {item_id(row) for row in items}
 
 
+def test_run_alerts_enforces_shanghai_publication_window_for_scan_and_pending(monkeypatch, tmp_path) -> None:
+    class FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2026, 11, 9, 16, 5, tzinfo=timezone.utc).astimezone(tz)
+
+    monkeypatch.setattr("src.bid_alerts.datetime", FixedDateTime)
+    report_path = tmp_path / "coverage.json"
+    save_state(report_path, {"partial": False})
+    settings = settings_for(tmp_path, audit_report_file=report_path, fetch_details=True)
+    dates = [
+        "2026年11月10日",
+        "2026-10-11T16:00:00Z",
+        "2026-10-11T15:59:59Z",
+        "2026-11-11",
+        "",
+        "",
+        "2026-11-10",
+    ]
+    scanned = [
+        replace(item(index=index), published="2026-11-10", notice_published=published)
+        for index, published in enumerate(dates)
+    ]
+    recent_retry = replace(scanned[5], notice_published="Mon Nov 09 2026 15:11:55 GMT+0800 (CST)")
+    old_retry = replace(scanned[6], notice_published="2023-12-04", publication_from_detail=True)
+    legacy_retry = asdict(item(index=7))
+    del legacy_retry["notice_published"]
+    save_state(settings.state_file, {"seen_ids": {}, "pending_delivery": [asdict(recent_retry), asdict(old_retry), legacy_retry]})
+    before = settings.state_file.read_bytes()
+    sent = []
+    monkeypatch.setattr("src.bid_alerts.collect_alert_items", lambda *args, **kwargs: scanned)
+    monkeypatch.setattr("src.bid_alerts.send_email", lambda settings, batch, **kwargs: sent.extend(batch))
+
+    assert run_alerts(settings, dry_run=True) == (7, 3)
+    assert settings.state_file.read_bytes() == before
+    assert not sent
+    assert run_alerts(settings) == (7, 3)
+    assert {row.link for row in sent} == {scanned[0].link, scanned[1].link, recent_retry.link}
+    assert set(load_state(settings.state_file)["seen_ids"]) == {item_id(row) for row in sent}
+    assert [row["link"] for row in load_state(settings.state_file)["pending_delivery"]] == [legacy_retry["link"]]
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    date_filter = report["date_filter"]
+    assert date_filter["from"] == "2026-10-12"
+    assert date_filter["through"] == "2026-11-10"
+    assert date_filter["older"] == 2
+    assert date_filter["future"] == 1
+    assert {row["url"] for row in date_filter["unverified"]} == {scanned[4].link, legacy_retry["link"]}
+    assert report["details_deferred"] == [legacy_retry["link"]]
+    assert report["partial"]
+
+
+def test_publisher_detail_date_overrides_recent_search_and_list_date(monkeypatch, tmp_path) -> None:
+    candidate = item()
+    settings = settings_for(tmp_path, fetch_details=True)
+    monkeypatch.setattr("src.bid_alerts.collect_source_page_items", lambda *args, **kwargs: [candidate])
+    monkeypatch.setattr("src.bid_alerts.fetch_feed", lambda *args, **kwargs: rss([candidate]))
+    monkeypatch.setattr("src.bid_documents.enrich_document", lambda *args, **kwargs: DocumentResult("专家访谈服务", published="2023-12-04"))
+    sent = []
+    monkeypatch.setattr("src.bid_alerts.send_email", lambda settings, batch, **kwargs: sent.append(batch))
+
+    assert run_alerts(settings) == (1, 0)
+    assert sent == [[]]
+
+
 def test_bounded_source_pagination_resumes_next_day_and_rechecks_first_page(monkeypatch, tmp_path) -> None:
     report_path = tmp_path / "coverage.json"
     first_url = "https://broker.example/list"
@@ -454,6 +521,7 @@ def test_galaxy_records_on_one_list_url_keep_distinct_ids() -> None:
     assert len(records) == 2
     assert records[0].link == records[1].link
     assert records[0].record_id != records[1].record_id
+    assert records[0].notice_published == "2026-10-28"
     assert item_id(records[0]) != item_id(records[1])
     assert dedupe_items(records) == records
     state = {"seen_ids": {}}

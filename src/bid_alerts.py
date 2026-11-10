@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, replace
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from email.message import EmailMessage
 import hashlib
 import html
@@ -42,6 +42,7 @@ from .bid_coverage import (
     next_list_page,
     page_links,
 )
+from .bid_documents import SHANGHAI_TIME, parse_notice_date
 
 
 DEFAULT_KEYWORDS = (
@@ -192,6 +193,7 @@ DEFAULT_STATE_FILE = "work/bid-alerts/state.json"
 DEFAULT_SUBJECT_PREFIX = "招标公告提醒"
 DEFAULT_MIN_RELEVANCE_SCORE = 5
 DEFAULT_MAX_EMAIL_ITEMS = 50
+NOTICE_WINDOW_DAYS = 30
 USER_AGENT = "Mozilla/5.0 (compatible; bid-alerts/0.1; +local-monitor)"
 STRONG_TERMS = (
     "专家咨询采购",
@@ -404,6 +406,9 @@ class AlertItem:
     matched_brokers: tuple[str, ...] = ()
     review_required: bool = False
     record_id: str = ""
+    # Search feed dates may be indexing or update dates. Keep publisher evidence separate.
+    notice_published: str = ""
+    publication_from_detail: bool = False
 
 
 @dataclass(frozen=True)
@@ -762,13 +767,15 @@ def _title_from_anchor(attrs: str, body: str) -> str:
     return _strip_markup(body)
 
 
-def _published_from_block(block_text: str) -> str:
+def _published_from_block(block_text: str, *, allow_unlabelled: bool = True) -> str:
     explicit_time = _first_match(r"""<span\b[^>]*class\s*=\s*["'][^"']*time[^"']*["'][^>]*>(.*?)</span>""", block_text)
     if explicit_time:
         return explicit_time
     explicit_date = _first_match(r"""<div\b[^>]*style\s*=\s*["'][^"']*color:\s*red[^"']*["'][^>]*>(.*?)</div>""", block_text)
     if explicit_date:
         return explicit_date
+    if not allow_unlabelled:
+        return ""
     text = _strip_markup(block_text)
     date_match = re.search(r"\b20\d{2}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}(?::\d{2})?)?\b", text)
     if date_match:
@@ -850,6 +857,7 @@ def parse_attachment_items(html_text: str, *, source_url: str) -> list[AlertItem
 
 def parse_structured_list_items(html_text: str, *, source_url: str) -> list[AlertItem]:
     items: list[AlertItem] = []
+    source = urlsplit(source_url).netloc.lower()
     for block_match in re.finditer(r"<li\b[^>]*>(?P<body>.*?)</li>", html_text, re.IGNORECASE | re.DOTALL):
         block = block_match.group("body")
         for anchor_match in re.finditer(
@@ -867,15 +875,19 @@ def parse_structured_list_items(html_text: str, *, source_url: str) -> list[Aler
                 continue
             if "/news/" not in href and "/bidding/" not in href and "/res/pdf/" not in href:
                 continue
+            notice_published = ""
+            if source in {"gy.chinamae.com", "www.ctsec.com"}:
+                notice_published = _published_from_block(block, allow_unlabelled=False)
             items.append(
                 AlertItem(
                     title=title,
                     link=urljoin(source_url, href),
                     summary="",
-                    published=_published_from_block(block),
-                    source=urlsplit(source_url).netloc.lower(),
+                    published=notice_published or _published_from_block(block),
+                    source=source,
                     keyword="source-page",
                     query=source_url,
+                    notice_published=notice_published,
                 )
             )
     return items
@@ -883,21 +895,28 @@ def parse_structured_list_items(html_text: str, *, source_url: str) -> list[Aler
 
 def parse_anchor_items(html_text: str, *, source_url: str) -> list[AlertItem]:
     items: list[AlertItem] = []
+    source = urlsplit(source_url).netloc.lower()
     for href, title_attribute, body_text in page_links(html_text):
         title = title_attribute.strip() or body_text.strip()
         href = href.strip()
         link = urljoin(source_url, href)
         if not href or not title or href.startswith("#") or urlsplit(link).scheme not in {"http", "https"}:
             continue
+        notice_published = ""
+        if source == "eps.qdgxjt.com" and title_attribute and body_text.startswith(title):
+            suffix = body_text.removeprefix(title).strip()
+            if parse_notice_date(suffix) is not None:
+                notice_published = suffix
         items.append(
             AlertItem(
                 title=title,
                 link=link,
                 summary="",
-                published=_published_from_block(body_text),
-                source=urlsplit(source_url).netloc.lower(),
+                published=notice_published or _published_from_block(body_text),
+                source=source,
                 keyword="source-page",
                 query=source_url,
+                notice_published=notice_published,
             )
         )
     return items
@@ -922,13 +941,14 @@ def parse_galaxy_records(page_text: str, source_url: str) -> tuple[list[AlertIte
         if not isinstance(row, dict) or not row.get("id") or not row.get("projectName"):
             raise BidAlertFetchError("银河证券采购记录缺少标识或项目名称")
         record_id = f"{parts.path.rsplit('/', 1)[-1]}:{row['id']}"
+        published = str(row.get("showTime") or "")
         records.append(AlertItem(
             title=f"中国银河证券：{row['projectName']}",
             link="https://www.chinastock.com.cn/newsite/online/purchaseAnnc.html",
             summary=f"项目编号：{row.get('projectNo', '-')}。官方结构化采购记录，链接指向采购列表；详情入口待核实。",
-            published=str(row.get("showTime", "")),
+            published=published,
             source="www.chinastock.com.cn", keyword="source-record", query=source_url,
-            body=json.dumps(row, ensure_ascii=False, sort_keys=True), record_id=record_id,
+            body=json.dumps(row, ensure_ascii=False, sort_keys=True), record_id=record_id, notice_published=published,
         ))
     query = dict(parse_qsl(parts.query))
     current_page = int(query.get("pageNo", "1"))
@@ -968,6 +988,7 @@ def parse_sdicc_table_items(html_text: str, *, source_url: str) -> list[AlertIte
                 source=urlsplit(source_url).netloc.lower(),
                 keyword="source-page",
                 query=source_url,
+                notice_published=published,
             )
         )
     return items
@@ -1264,7 +1285,7 @@ def enrich_notice_documents(
             backlog = []
             for row in previous.get("deferred_items", []):
                 if isinstance(row, dict) and all(isinstance(row.get(key), str) for key in ("title", "link", "summary", "published", "source", "keyword", "query")):
-                    backlog.append(AlertItem(**{key: row[key] for key in ("title", "link", "summary", "published", "source", "keyword", "query")}))
+                    backlog.append(replace(restore_alert(row), body="", matched_brokers=(), review_required=False))
             items = dedupe_items(items + backlog)
         except (OSError, ValueError, TypeError):
             pass
@@ -1288,6 +1309,8 @@ def enrich_notice_documents(
         try:
             document = enrich_document(item.link, item.title, settings.request_timeout_seconds)
             result = replace(item, body=document.text)
+            if parse_notice_date(document.published) is not None:
+                result = replace(result, published=document.published, notice_published=document.published, publication_from_detail=True)
             warnings = document.warnings
         except (OSError, ValueError, RuntimeError, requests.RequestException) as exc:
             result, warnings = item, (f"正文读取失败：{type(exc).__name__}",)
@@ -1346,15 +1369,13 @@ def item_id(item: AlertItem) -> str:
 
 
 def dedupe_items(items: Iterable[AlertItem]) -> list[AlertItem]:
-    seen: set[str] = set()
-    deduped: list[AlertItem] = []
+    deduped: dict[str, AlertItem] = {}
     for item in items:
         identifier = item_id(item)
-        if identifier in seen:
-            continue
-        seen.add(identifier)
-        deduped.append(item)
-    return deduped
+        first = deduped.setdefault(identifier, item)
+        if item.notice_published and (not first.notice_published or (item.publication_from_detail and not first.publication_from_detail)):
+            deduped[identifier] = replace(first, published=item.notice_published, notice_published=item.notice_published, publication_from_detail=item.publication_from_detail)
+    return list(deduped.values())
 
 
 def relevance_score(item: AlertItem) -> int:
@@ -1405,6 +1426,23 @@ def filter_items_by_relevance(items: Iterable[AlertItem], *, min_score: int) -> 
         for item in sort_items_by_relevance(items)
         if not is_excluded_item(item) and (item.review_required or (has_target_terms(item) and relevance_score(item) >= min_score))
     ]
+
+
+def filter_recent_notices(items: Iterable[AlertItem], *, today: date) -> tuple[list[AlertItem], dict]:
+    start = today - timedelta(days=NOTICE_WINDOW_DAYS - 1)
+    report = {"from": start.isoformat(), "through": today.isoformat(), "older": 0, "future": 0, "unverified": []}
+    recent = []
+    for item in items:
+        published = parse_notice_date(item.notice_published)
+        if published is None:
+            report["unverified"].append({"item_id": item_id(item), "title": item.title, "url": item.link, "reported_date": item.published})
+        elif published < start:
+            report["older"] += 1
+        elif published > today:
+            report["future"] += 1
+        else:
+            recent.append(item)
+    return recent, report
 
 
 def notice_stage(item: AlertItem) -> str:
@@ -1558,7 +1596,16 @@ def restore_alert(row: dict) -> AlertItem:
     required = ("title", "link", "summary", "published", "source", "keyword", "query")
     if not isinstance(row, dict) or not all(isinstance(row.get(key), str) for key in required):
         raise BidAlertConfigError("Invalid pending delivery record; retained for recovery")
-    return AlertItem(**{key: row[key] for key in required}, body=row.get("body", ""), matched_brokers=tuple(row.get("matched_brokers", [])), review_required=bool(row.get("review_required", False)), record_id=row.get("record_id", ""))
+    published = row.get("notice_published", "")
+    return AlertItem(
+        **{key: row[key] for key in required},
+        body=row.get("body", ""),
+        matched_brokers=tuple(row.get("matched_brokers", [])),
+        review_required=bool(row.get("review_required", False)),
+        record_id=row.get("record_id", ""),
+        notice_published=published if isinstance(published, str) else "",
+        publication_from_detail=row.get("publication_from_detail") is True,
+    )
 
 
 def mark_seen(state: dict[str, object], items: Iterable[AlertItem], *, max_seen: int = 5000) -> None:
@@ -1639,6 +1686,7 @@ def render_email_body(
         queries = scan_report.get("queries", [])
         sources = scan_report.get("sources", [])
         details = scan_report.get("details", [])
+        dates = scan_report.get("date_filter")
         lines.extend([
             "## 覆盖与缺口",
             f"- 名录逐家检索：{scan_report.get('broker_count', 0)} 家；配置官方采购入口：{scan_report.get('brokers_with_configured_sources', 0)} 家（配置不代表本轮抓取成功）",
@@ -1648,6 +1696,12 @@ def render_email_body(
             "- 逐家检索、来源失败、待核验及覆盖限制详见附件 coverage-report.json。搜索成功不等于全部项目已捕获。",
             "",
         ])
+        if dates is not None:
+            lines.extend([
+                f"- 发布日期范围（北京时间）：{dates['from']} 至 {dates['through']}。",
+                f"- 已排除早于范围的公告 {dates['older']} 条、未来日期 {dates['future']} 条。另有 {len(dates['unverified'])} 条日期未核实，详见覆盖报告。",
+                "",
+            ])
     if not items:
         status_note = "本次扫描没有发现新的专家咨询/专家网络相关目标公告。系统已正常运行；若后续发现新公告，会在下一次邮件中列出。"
         if scan_report is not None:
@@ -1857,6 +1911,7 @@ def run_alerts(
     prime: bool = False,
     progress: Callable[[str], None] | None = None,
 ) -> tuple[int, int]:
+    today = datetime.now(SHANGHAI_TIME).date()
     items = collect_alert_items(settings, progress=progress)
     _emit_progress(progress, f"抓取完成，原始结果 {len(items)} 条，开始筛选...")
     eligible_items = filter_items_by_relevance(items, min_score=settings.min_relevance_score)
@@ -1864,13 +1919,26 @@ def run_alerts(
     pending_delivery = state.get("pending_delivery", [])
     if not isinstance(pending_delivery, list):
         raise BidAlertConfigError("Invalid pending delivery queue")
-    eligible_items = dedupe_items(eligible_items + [restore_alert(row) for row in pending_delivery])
+    retries = [restore_alert(row) for row in pending_delivery]
+    candidates = dedupe_items(eligible_items + retries)
+    eligible_items, dates = filter_recent_notices(candidates, today=today)
+    unverified_ids = {row["item_id"] for row in dates["unverified"]}
+    unverified_retries = [asdict(item) for item in retries if item_id(item) in unverified_ids]
+    _emit_progress(progress, f"发布日期 {dates['from']} 至 {dates['through']}（北京时间）。排除较早公告 {dates['older']} 条、未来日期 {dates['future']} 条、未核实日期 {len(dates['unverified'])} 条。")
     new_items = select_new_items(eligible_items, state)
     email_items = sort_items_by_relevance(new_items)
     report = None
     if settings.audit_report_file is not None and settings.audit_report_file.exists():
         report = json.loads(settings.audit_report_file.read_text(encoding="utf-8"))
-        report.update({"eligible_items": len(eligible_items), "new_or_updated_items": len(email_items), "review_candidates": sum(item.review_required for item in eligible_items)})
+        report.update({"eligible_items": len(eligible_items), "new_or_updated_items": len(email_items), "review_candidates": sum(item.review_required for item in eligible_items), "date_filter": dates})
+        report["partial"] = report["partial"] or bool(dates["unverified"] or dates["future"])
+        if unverified_retries and settings.fetch_details:
+            deferred_links = report.setdefault("details_deferred", [])
+            manual_links = {row["url"] for row in report.get("manual_review", [])}
+            for row in unverified_retries:
+                if row["link"] not in deferred_links and row["link"] not in manual_links:
+                    deferred_links.append(row["link"])
+                    report.setdefault("deferred_items", []).append(row)
         save_state(settings.audit_report_file, report)
 
     if prime:
@@ -1884,7 +1952,7 @@ def run_alerts(
     _emit_progress(progress, f"筛选后 {len(eligible_items)} 条；新增或变更 {len(email_items)} 条；待人工核验 {sum(item.review_required for item in eligible_items)} 条。")
     batch_size = max(1, settings.max_email_items)
     batches = [email_items[offset:offset + batch_size] for offset in range(0, len(email_items), batch_size)] or [[]]
-    state["pending_delivery"] = [asdict(item) for item in email_items]
+    state["pending_delivery"] = [asdict(item) for item in email_items] + unverified_retries
     save_state(settings.state_file, state)
     for index, batch in enumerate(batches, start=1):
         _emit_progress(progress, f"发送摘要：第 {index}/{len(batches)} 批，{len(batch)} 条。")

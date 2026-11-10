@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime
 from html.parser import HTMLParser
 from io import BytesIO
 import ipaddress
@@ -9,6 +10,7 @@ import socket
 from urllib.parse import unquote, urljoin, urlsplit, urlunsplit
 from xml.etree import ElementTree
 from zipfile import BadZipFile, ZipFile
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -17,8 +19,31 @@ MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
 MAX_TEXT_CHARS = 100_000
 MAX_ATTACHMENTS = 10
 MAX_PDF_PAGES = 200
+SHANGHAI_TIME = ZoneInfo("Asia/Shanghai")
+PUBLICATION_HEADER_CHARS = 600
 USER_AGENT = "Mozilla/5.0 (compatible; bid-alerts/0.1; +public-document-monitor)"
 ATTACHMENT_PATTERN = re.compile(r"\.(pdf|docx|doc|xlsx|xls|zip)(?:$|[?#&])", re.IGNORECASE)
+PUBLICATION_MARKERS = {
+    "article:published_time", "datepublished", "pubdate", "publishdate", "published",
+    "publish_date", "published_date", "publication_date", "publish_time", "published_time",
+}
+OTHER_TIME_MARKERS = {
+    "article:modified_time", "datemodified", "dateupdated", "deadline", "duedate",
+    "modified", "modified_time", "update_time", "updated", "updated_time",
+}
+PUBLICATION_DATE_TEXT = (
+    r"(?:20\d{2}年\s*\d{1,2}月\s*\d{1,2}日|20\d{2}[-./]\d{1,2}[-./]\d{1,2})"
+    r"(?:[T ]\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?(?!\d)"
+)
+PUBLICATION_LINE = re.compile(
+    rf"^[^\S\n]*(?:发布日期|发布时间|公告日期)[^\S\n]*[:：]?[^\S\n]*({PUBLICATION_DATE_TEXT})",
+    re.MULTILINE,
+)
+SOURCE_DATE_LINE = re.compile(
+    rf"^[^\S\n]*({PUBLICATION_DATE_TEXT})[^\S\n]*来源[^\S\n]*[:：][^\S\n]*\S",
+    re.MULTILINE,
+)
+NOTICE_BLOCK_TAGS = {"p", "div", "br", "li", "tr", "h1", "h2", "h3"}
 DOCUMENT_MIME_TYPES = {
     "application/pdf": "pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
@@ -35,10 +60,34 @@ class DocumentResult:
     text: str
     attachments: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
+    published: str = ""
 
 
 class DocumentReadError(ValueError):
     pass
+
+
+def parse_notice_date(value: str) -> date | None:
+    value = value.strip()
+    if not value:
+        return None
+    normalized = f"{value[:-1]}+00:00" if value.endswith("Z") else value
+    normalized = re.sub(r"([+-]\d{2})(\d{2})$", r"\1:\2", normalized)
+    try:
+        timestamp = datetime.fromisoformat(normalized)
+    except ValueError:
+        # Publisher lists also use Chinese dates, slashes, and JavaScript dates.
+        match = re.fullmatch(r"(20\d{2})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})\s*日?(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?", value)
+        try:
+            if match:
+                return date(*map(int, match.groups()))
+            timestamp = datetime.strptime(value.split(" (", 1)[0], "%a %b %d %Y %H:%M:%S GMT%z")
+        except ValueError:
+            return None
+    try:
+        return timestamp.astimezone(SHANGHAI_TIME).date() if timestamp.tzinfo is not None else timestamp.date()
+    except OverflowError:
+        return None
 
 
 class _AnonymousAuth(requests.auth.AuthBase):
@@ -135,22 +184,56 @@ class _NoticeHTML(HTMLParser):
         self.ignored = 0
         self.links: list[tuple[str, str]] = []
         self.anchor: tuple[str, list[str]] | None = None
+        self.meta_published = ""
+        self.time_published = ""
+        self.publication_time_text: list[str] | None = None
+        self.separate_time = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag in self.depth:
             self.depth[tag] += 1
         if tag in {"script", "style", "header", "footer", "nav", "noscript"}:
             self.ignored += 1
-        if tag == "a" and not self.ignored:
+        if self.ignored:
+            return
+        if tag == "a":
             values = dict(attrs)
             self.anchor = (values.get("href") or "", [values.get("title") or ""])
-        if tag in {"p", "div", "br", "li", "tr", "h1", "h2", "h3"}:
-            self.handle_data("\n")
+        elif tag in {"meta", "time"}:
+            values = dict(attrs)
+            keys = ("name", "property", "itemprop", "class") if tag == "time" else ("name", "property", "itemprop")
+            markers = {
+                value.lower().replace("-", "_")
+                for key in keys
+                for value in (values.get(key) or "").split()
+            }
+            if tag == "meta" and not self.meta_published and markers & PUBLICATION_MARKERS:
+                value = (values.get("content") or "").strip()
+                if parse_notice_date(value) is not None:
+                    self.meta_published = value
+            elif tag == "time" and markers & OTHER_TIME_MARKERS:
+                # Do not associate a marked update or deadline with nearby publisher text.
+                self.separate_time = True
+                self._append_text("\n")
+            elif tag == "time" and not self.time_published and ("pubdate" in values or markers & PUBLICATION_MARKERS):
+                self.time_published = (values.get("datetime") or "").strip()
+                if not self.time_published:
+                    self.publication_time_text = []
+        if tag in NOTICE_BLOCK_TAGS:
+            self._append_text("\n")
 
     def handle_endtag(self, tag: str) -> None:
         if tag == "a" and self.anchor is not None:
             self.links.append((self.anchor[0], " ".join(self.anchor[1]).strip()))
             self.anchor = None
+        if tag == "time" and self.publication_time_text is not None:
+            self.time_published = " ".join(self.publication_time_text).strip()
+            self.publication_time_text = None
+        if tag == "time" and self.separate_time and not self.ignored:
+            self._append_text("\n")
+            self.separate_time = False
+        if tag in NOTICE_BLOCK_TAGS and not self.ignored:
+            self._append_text("\n")
         if tag in self.depth:
             self.depth[tag] = max(0, self.depth[tag] - 1)
         if tag in {"script", "style", "header", "footer", "nav", "noscript"}:
@@ -159,6 +242,11 @@ class _NoticeHTML(HTMLParser):
     def handle_data(self, data: str) -> None:
         if self.ignored:
             return
+        self._append_text(data.replace("\n", " ").replace("\r", " "))
+        if self.publication_time_text is not None:
+            self.publication_time_text.append(data)
+
+    def _append_text(self, data: str) -> None:
         self.sections["fallback"].append(data)
         for key, depth in self.depth.items():
             if depth:
@@ -167,10 +255,25 @@ class _NoticeHTML(HTMLParser):
             self.anchor[1].append(data)
 
     def notice_text(self) -> str:
-        for key in ("article", "main", "body", "fallback"):
-            text = " ".join(self.sections[key]).strip()
+        return re.sub(r"\s+", " ", self._notice_text_with_lines()).strip()
+
+    def publication_date(self) -> str:
+        for value in (self.meta_published, self.time_published):
+            if parse_notice_date(value) is not None:
+                return value
+        header = self._notice_text_with_lines()[:PUBLICATION_HEADER_CHARS]
+        for pattern in (PUBLICATION_LINE, SOURCE_DATE_LINE):
+            for match in pattern.finditer(header):
+                value = match.group(1)
+                if parse_notice_date(value) is not None:
+                    return value
+        return ""
+
+    def _notice_text_with_lines(self) -> str:
+        for parts in self.sections.values():
+            text = " ".join(parts).strip()
             if text:
-                return re.sub(r"\s+", " ", text)
+                return text
         return ""
 
 
@@ -279,4 +382,4 @@ def enrich_document(url: str, title: str, timeout_seconds: int) -> DocumentResul
         warnings.append("正文超过100000字符，已截断")
     if not text:
         warnings.append("未读取到公告正文，可能需要动态加载或登录，需人工核验")
-    return DocumentResult(text[:MAX_TEXT_CHARS], tuple(candidates), tuple(warnings))
+    return DocumentResult(text[:MAX_TEXT_CHARS], tuple(candidates), tuple(warnings), published=parser.publication_date())

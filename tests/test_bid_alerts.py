@@ -855,6 +855,7 @@ def test_parse_public_html_items_extracts_sdicc_rows() -> None:
         "gcGuid=abc&ggGuid=f3b00b23-c19a-4def-a74c-1284aed90ce8"
     )
     assert items[0].published == "2026-03-20"
+    assert items[0].notice_published == "2026-03-20"
     assert items[1].link == "https://www.sdicc.com.cn/cgxx/zbhxrDetail?bdGuid=bd-guid&guid=hxr-guid"
     assert filter_items_by_relevance(items, min_score=5) == items
 
@@ -879,6 +880,7 @@ def test_parse_public_html_items_extracts_chinamae_list_dates() -> None:
     assert items[0].title == "国泰海通证券2025年专家咨询服务框架协议采购项目"
     assert items[0].link == "https://gy.chinamae.com/news/8b33b1765c3b12473675c9bde710cde8.html"
     assert items[0].published == "2026-01-21"
+    assert items[0].notice_published == "2026-01-21"
     assert filter_items_by_relevance(items, min_score=5) == [items[0]]
 
 
@@ -899,6 +901,7 @@ def test_parse_public_html_items_extracts_ctsec_bidding_titles() -> None:
     assert items[0].title == "财通证券专家服务选型供应商入围项目成交公告"
     assert items[0].link == "https://www.ctsec.com/res/pdf/1663486736.pdf"
     assert items[0].published == "Tue May 26 2026 15:11:55 GMT+0800 (CST)"
+    assert items[0].notice_published == items[0].published
     assert filter_items_by_relevance(items, min_score=5) == items
 
 
@@ -925,6 +928,7 @@ def test_parse_public_html_items_extracts_qingdao_guoxin_notice() -> None:
     assert items[0].title == "专家咨询服务项目公告"
     assert items[0].link == "https://eps.qdgxjt.com/cms/channel/xmgg1fw/14022.htm"
     assert items[0].published == "2026-07-01"
+    assert items[0].notice_published == "2026-07-01"
     assert relevance_label(items[0]) == "强相关"
     assert filter_items_by_relevance(items, min_score=5) == items
 

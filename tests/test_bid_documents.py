@@ -121,6 +121,52 @@ def test_notice_body_and_explicit_cross_host_attachments_are_read_without_naviga
     assert any("格式暂不支持" in warning for warning in result.warnings)
 
 
+@pytest.mark.parametrize(
+    ("html", "published"),
+    [
+        ('<meta property="article:published_time" content="2026-11-09T08:30:00+08:00">'
+         '<article><p>发布日期：2026-11-10</p></article>', "2026-11-09T08:30:00+08:00"),
+        ('<meta name="PubDate" content="2026-11-09"><p>Notice</p>', "2026-11-09"),
+        ('<meta name="PubDate" content="N/A"><meta name="PubDate" content="2026-11-09"><p>Notice</p>', "2026-11-09"),
+        ('<article><time itemprop="datePublished" datetime="2026-11-09">昨日</time></article>', "2026-11-09"),
+        ('<article><time pubdate>2026-11-09</time></article>', "2026-11-09"),
+        ('<main><h1>采购公告</h1><div>发布时间：\n<span>2026年11月9日 09:30</span></div></main>', "2026年11月9日 09:30"),
+        ('<body><h1>采购公告</h1><div>公告日期：2026-11-09</div></body>', "2026-11-09"),
+        ('<body><h1>采购公告</h1><div><span>2023-12-04</span> 来源：中国邮政网</div></body>', "2023-12-04"),
+        ('<article><div>2026-11-09 来源：本站</div><p>发布日期：2023-12-04</p></article>', "2023-12-04"),
+    ],
+)
+def test_publication_date_comes_from_an_explicit_article_marker(monkeypatch, html, published) -> None:
+    page_url = "https://broker.example/notice"
+    mock_pages(monkeypatch, {page_url: FakeResponse(html.encode(), "text/html; charset=utf-8")})
+
+    assert enrich_document(page_url, "采购公告", 3).published == published
+
+
+def test_deadlines_updates_copyright_and_attachment_dates_are_not_publication_dates(monkeypatch) -> None:
+    page_url = "https://broker.example/notice"
+    attachment_url = "https://broker.example/spec.docx"
+    html = (
+        '<meta property="article:modified_time" content="2026-11-10">'
+        '<article><h1>采购公告</h1><p><time itemprop="dateModified" datetime="2026-11-10">'
+        '2026-11-10</time> 来源：中国邮政网</p><p>投标截止时间：2026-11-12</p>'
+        '<p>2026-11-13</p><p>来源：中国邮政网</p><a href="/spec.docx">附件</a>'
+        '<footer>发布日期：2026-11-14</footer></article>'
+    )
+    mock_pages(
+        monkeypatch,
+        {
+            page_url: FakeResponse(html.encode(), "text/html; charset=utf-8"),
+            attachment_url: FakeResponse(docx_bytes("发布日期：2026-11-15"), "application/octet-stream"),
+        },
+    )
+
+    result = enrich_document(page_url, "采购公告", 3)
+
+    assert "发布日期：2026-11-15" in result.text
+    assert result.published == ""
+
+
 def test_pdf_text_is_extracted_and_blank_pdf_is_reported_for_review(monkeypatch) -> None:
     mock_pages(
         monkeypatch,
